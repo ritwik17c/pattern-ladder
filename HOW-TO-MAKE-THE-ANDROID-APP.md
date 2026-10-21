@@ -39,9 +39,10 @@ GitHub (free) can build it for you on its own computers.
 4. **Wait for the build.** Open the *Actions* tab. A job called
    *Build Android APK* starts by itself. It takes about 5–8 minutes.
    A green tick means it worked.
-5. **Download the app.** Click the finished job, scroll to *Artifacts*, and
-   download `pattern-ladder-apk`. Unzip it to get `app-debug.apk`.
-6. **Install on a phone.** Copy `app-debug.apk` to the phone (WhatsApp to
+5. **Download the app.** On the repository's main page, click *Releases*
+   (right-hand side) and download `pattern-ladder.apk` from the newest one.
+   Each build makes a new numbered release (1.0.3, 1.0.4 …).
+6. **Install on a phone.** Copy `pattern-ladder.apk` to the phone (WhatsApp to
    yourself, Google Drive, or a USB cable). Tap it. Android will ask you to
    allow installing from this source; allow it once.
 
