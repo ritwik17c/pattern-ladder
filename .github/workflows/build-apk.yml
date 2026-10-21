@@ -3,6 +3,8 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -20,7 +22,15 @@ jobs:
       - run: npx cap sync android
       - name: Build APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk pattern-ladder.apk
       - uses: actions/upload-artifact@v4
         with:
           name: pattern-ladder-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: pattern-ladder.apk
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Pattern Ladder 1.0.${{ github.run_number }}
+          body: Install pattern-ladder.apk on an Android phone. Allow "install from this source" once when asked.
+          files: pattern-ladder.apk
