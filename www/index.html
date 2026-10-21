@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<title>Pattern Ladder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#1d3557">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a single phone-width column like a study card; Hornby's "Subject × Verb | Object" table slots drive the pattern visuals. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#18263b; --muted:#5b6778; --line:#d9dfe8;
+  --accent:#1d4f91; --accent-ink:#ffffff; --accent-soft:#e3ecf8;
+  --good:#1f7a4d; --good-soft:#dff3e8; --bad:#b3263e; --bad-soft:#fbe3e7; --warn:#a86200; --warn-soft:#fdf0db;
+  --slot1:#e8eef9; --slot2:#eaf5ee; --slot3:#f8efe2; --slot4:#f3e9f6;
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", Roboto, system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Roboto Mono", monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1622; --surface:#172131; --ink:#e7ecf3; --muted:#9aa7b8; --line:#2a3647;
+  --accent:#7fb0f0; --accent-ink:#0f1622; --accent-soft:#1d2d45;
+  --good:#5fd39a; --good-soft:#163326; --bad:#ff8fa3; --bad-soft:#3a1a22; --warn:#f3b45a; --warn-soft:#3a2a12;
+  --slot1:#1f2c42; --slot2:#1b3127; --slot3:#352a1b; --slot4:#2f2236; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1622; --surface:#172131; --ink:#e7ecf3; --muted:#9aa7b8; --line:#2a3647;
+  --accent:#7fb0f0; --accent-ink:#0f1622; --accent-soft:#1d2d45;
+  --good:#5fd39a; --good-soft:#163326; --bad:#ff8fa3; --bad-soft:#3a1a22; --warn:#f3b45a; --warn-soft:#3a2a12;
+  --slot1:#1f2c42; --slot2:#1b3127; --slot3:#352a1b; --slot4:#2f2236; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balance;margin:0}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 96px}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{font-family:var(--f-display);font-size:1.15rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;font-family:var(--f-body);font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:.85rem;font-variant-numeric:tabular-nums}
+.iconbtn{border:0;background:transparent;width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+.iconbtn:hover{background:var(--accent-soft)}
+.iconbtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.nav button{border:0;background:none;padding:8px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.75rem;color:var(--muted)}
+.nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav button[aria-current="page"]{color:var(--accent);font-weight:700}
+
+/* generic */
+.stack{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.btn{border:0;border-radius:12px;padding:13px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);width:100%;font-size:1rem}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;align-items:center}
+.row > *{min-width:0}
+
+/* today */
+.today{background:var(--accent);color:var(--accent-ink);border:0}
+.today h2{font-size:1.5rem}
+.today .btn{background:var(--accent-ink);color:var(--accent)}
+.today .btn.ghost{background:transparent;color:var(--accent-ink);border-color:var(--accent-ink)}
+.today .muted{color:inherit;opacity:.85}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-block:12px}
+.stat{background:rgba(255,255,255,.12);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-size:1.35rem;font-variant-numeric:tabular-nums;font-family:var(--f-display);font-weight:400}
+.stat span{font-size:.75rem;opacity:.85}
+.goalbar{height:8px;border-radius:9px;background:rgba(255,255,255,.22);overflow:hidden}
+.goalbar i{display:block;height:100%;background:var(--accent-ink);border-radius:9px}
+
+/* level path */
+.level{border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.level header{padding:14px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--line)}
+.level .badge{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-family:var(--f-display);font-size:1.2rem;flex:none}
+.level h3{font-size:1.1rem}
+.level header p{margin:0;font-size:.85rem;color:var(--muted)}
+.units{list-style:none;margin:0;padding:0}
+.unit{display:flex;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.units li:first-child .unit{border-top:0}
+.unit:hover:not(:disabled){background:var(--accent-soft)}
+.unit:disabled{opacity:.5;cursor:not-allowed}
+.vp{font-family:var(--f-mono);font-size:.72rem;padding:3px 7px;border-radius:6px;background:var(--slot1);color:var(--ink);white-space:nowrap;flex:none;min-width:62px;text-align:center}
+.unit .t{flex:1;min-width:0}
+.unit .t b{display:block;font-weight:700}
+.unit .t span{font-size:.82rem;color:var(--muted);font-family:var(--f-mono)}
+.stars{display:flex;gap:1px;flex:none}
+.stars svg{width:15px;height:15px}
+.lock svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2}
+
+/* lesson */
+.formula{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.slot{font-family:var(--f-mono);font-size:.85rem;padding:6px 10px;border-radius:8px;border:1px dashed var(--line)}
+.slot:nth-child(4n+1){background:var(--slot1)}.slot:nth-child(4n+2){background:var(--slot2)}
+.slot:nth-child(4n+3){background:var(--slot3)}.slot:nth-child(4n+4){background:var(--slot4)}
+.exlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.exlist li{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.exlist li span{flex:1;min-width:0}
+.say{border:0;background:none;padding:2px;border-radius:6px;color:var(--accent);flex:none}
+.say svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.watch{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:0 10px 10px 0;padding:10px 12px}
+.watch .bad{text-decoration:line-through;text-decoration-color:var(--bad);color:var(--muted)}
+.watch .good{font-weight:700;color:var(--good)}
+.sign{font-family:var(--f-display);color:var(--warn);font-size:1.1rem}
+.verbs{font-family:var(--f-mono);font-size:.82rem;line-height:1.7}
+
+/* quiz */
+.progress{height:8px;border-radius:9px;background:var(--line);overflow:hidden;flex:1}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.qtype{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.qtext{font-size:1.2rem;line-height:1.45;margin:6px 0 0}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{text-align:left;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:1rem}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.answer{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:1.05rem}
+.answer.right{border-color:var(--good);background:var(--good-soft)}
+.answer.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.build-line{min-height:58px;border-radius:12px;border:1.5px dashed var(--line);padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;background:var(--surface)}
+.build-line.right{border-color:var(--good);border-style:solid;background:var(--good-soft)}
+.build-line.wrong{border-color:var(--bad);border-style:solid;background:var(--bad-soft)}
+.bank{display:flex;flex-wrap:wrap;gap:8px}
+.word{border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:1rem;box-shadow:0 2px 0 var(--line)}
+.word:disabled{visibility:hidden}
+.feedback{border-radius:12px;padding:12px 14px}
+.feedback.right{background:var(--good-soft);color:var(--ink)}
+.feedback.wrong{background:var(--bad-soft);color:var(--ink)}
+.feedback b{display:block;margin-bottom:2px}
+.feedback.right b{color:var(--good)}.feedback.wrong b{color:var(--bad)}
+.dock{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));padding-block:10px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
+
+/* result */
+.big{font-family:var(--f-display);font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.bigstars{display:flex;justify-content:center;gap:6px}
+.bigstars svg{width:42px;height:42px}
+
+/* reference table */
+.ref{width:100%;border-collapse:collapse;font-size:.9rem}
+.ref th,.ref td{text-align:left;padding:9px 8px;border-top:1px solid var(--line);vertical-align:top}
+.ref th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:0}
+.ref td:first-child{font-family:var(--f-mono);white-space:nowrap}
+.ref .fm{font-family:var(--f-mono);font-size:.8rem;display:block;color:var(--accent)}
+.ref button{border:0;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:5px 9px;font-weight:700;font-size:.8rem}
+.tablewrap{overflow-x:auto}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.85rem}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.toggle{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.toggle:first-of-type{border-top:0}
+.toggle p{margin:0}
+.switch{width:50px;height:30px;border-radius:99px;border:0;background:var(--line);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);transition:left .2s}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{left:23px}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bars .b{display:grid;grid-template-columns:110px 1fr 44px;gap:10px;align-items:center;font-size:.85rem}
+.bars .track{height:10px;background:var(--line);border-radius:9px;overflow:hidden}
+.bars .track i{display:block;height:100%;border-radius:9px}
+.bars .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;max-width:90vw}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+@keyframes pop{0%{transform:scale(.96);opacity:.6}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .18s ease-out}
+</style>
+
+<div class="top"><div class="in">
+  <button class="iconbtn" id="backBtn" aria-label="Back" hidden><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <div class="brand" id="brand">Pattern Ladder<small>Daily practice after A. S. Hornby</small></div>
+  <span class="chip" id="streakChip" title="Days in a row"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-1.5.6-2.7 1.5-3.6C9.7 9.6 11 9 12 2zM7 14a5 5 0 0 0 10 0c0 3.9-2.2 8-5 8s-5-4.1-5-8z"/></svg><span id="streakNum">0</span></span>
+</div></div>
+
+<main class="wrap" id="view" aria-live="polite"></main>
+
+<nav class="nav" aria-label="Main"><div class="in">
+  <button data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Learn</button>
+  <button data-tab="daily"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</button>
+  <button data-tab="ref"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 15h10M4 20h7"/></svg>Patterns</button>
+  <button data-tab="me"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</button>
+</div></nav>
+
+<script>
+// Pattern Ladder — lesson data
+// All example sentences and exercises are original, written to follow the
+// patterns and usage described by A. S. Hornby (not copied from the book).
+//
+// Question types:
+//   m = multiple choice   { t:'m', q, o:[options], a:indexOfCorrect, e:explanation }
+//   f = fill in the blank { t:'f', q, a:[accepted answers], e }
+// Build-the-sentence and Which-pattern questions are generated from "ex".
+
+window.LEVELS = [
+  { id: 1, name: "Foundation", tag: "Beginner", colour: "#2f9e6b",
+    blurb: "The simplest sentence shapes: who does what, to whom, where." },
+  { id: 2, name: "Elementary", tag: "Beginner+", colour: "#1f8ac0",
+    blurb: "Verbs followed by -ing, to-infinitives, prepositions and objects." },
+  { id: 3, name: "Intermediate", tag: "Intermediate", colour: "#7a5bd6",
+    blurb: "Objects with infinitives, participles and that-clauses; tenses." },
+  { id: 4, name: "Upper Intermediate", tag: "Intermediate+", colour: "#c0662a",
+    blurb: "Question words, preparatory it and there, adjectives and adverbs." },
+  { id: 5, name: "Advanced", tag: "Advanced", colour: "#c23b5a",
+    blurb: "Expressing ideas: obligation, permission, wishes, conditions and more." }
+];
+
+window.UNITS = [
+// ───────────────────────── LEVEL 1 ─────────────────────────
+{ id: "u01", level: 1, vp: "VP 21", title: "Subject + Verb",
+  formula: "S + V",
+  explain: "The shortest English sentence has only a subject and a verb. Nothing has to follow the verb. Such verbs are called intransitive.",
+  ex: ["The children are laughing.", "The bell rang.", "Prices have risen.", "Nobody answered.", "The old bridge collapsed.", "My watch has stopped."],
+  verbs: "sleep, laugh, cry, arrive, rain, fall, rise, happen, matter, smile",
+  watch: [{ bad: "Your opinion doesn't matter it.", good: "Your opinion doesn't matter.", note: "Matter, happen and arrive never take an object." }],
+  qs: [
+    { t: "m", q: "Which sentence follows S + V only?", o: ["The baby cried.", "The baby wanted milk.", "The baby is hungry.", "The baby gave me a smile."], a: 0, e: "Nothing follows 'cried' — just subject + verb." },
+    { t: "m", q: "Choose the correct sentence.", o: ["An accident happened.", "An accident happened it.", "It happened an accident.", "Happened an accident."], a: 0, e: "'Happen' takes no object." },
+    { t: "f", q: "The guests have finally ______. (arrive)", a: ["arrived"], e: "Present perfect: have + past participle. No object needed." },
+    { t: "m", q: "Which verb CANNOT stand alone after the subject?", o: ["sleep", "rain", "describe", "smile"], a: 2, e: "'Describe' needs an object: describe something." },
+    { t: "m", q: "'The ball rolled.' What pattern is the same verb in 'I rolled the ball.'?", o: ["S + V + O (VP 1)", "S + V (VP 21)", "S + V + complement (VP 22)", "S + V + adverbial (VP 23)"], a: 0, e: "Many verbs can be used both ways. With 'the ball' as object it is VP 1." },
+    { t: "f", q: "Look! It is ______. Take an umbrella. (rain)", a: ["raining"], e: "Weather verbs use 'it' as subject: It is raining." },
+    { t: "m", q: "Pick the sentence in which the verb needs nothing after it.", o: ["The flowers died.", "The flowers need water.", "The flowers look fresh.", "The flowers are in the vase."], a: 0, e: "'Died' completes the sentence by itself." },
+    { t: "m", q: "Which is correct?", o: ["What I think does not matter.", "What I think does not matter me.", "What I think not matters.", "What I think does not matters."], a: 0, e: "A clause can be the subject. 'Does not' + base verb 'matter'." }
+  ] },
+
+{ id: "u02", level: 1, vp: "VP 22", title: "Subject + Verb + Complement",
+  formula: "S + V + Adjective / Noun",
+  explain: "Some verbs need a word after them that describes the subject. That word (an adjective or a noun) is the complement. The verb 'be' is the commonest, but become, seem, look, feel, sound, taste, smell, grow, turn and keep work the same way.",
+  ex: ["My uncle is a farmer.", "The soup tastes salty.", "Ananya became a pilot.", "You look tired today.", "The leaves turn yellow in autumn.", "Please keep calm."],
+  verbs: "be, become, seem, appear, look, feel, sound, taste, smell, grow, turn, keep, remain",
+  watch: [{ bad: "The music sounds beautifully.", good: "The music sounds beautiful.", note: "After look, sound, feel, taste and smell we use an adjective, not an adverb, because the word describes the subject." }],
+  qs: [
+    { t: "m", q: "Choose the correct word: This milk smells ______.", o: ["sour", "sourly", "sourness", "soured it"], a: 0, e: "An adjective describes the milk." },
+    { t: "m", q: "Choose the correct sentence.", o: ["She feels happy.", "She feels happily.", "She feels happiness her.", "She happy feels."], a: 0, e: "feel + adjective." },
+    { t: "f", q: "Rahul wants to ______ a doctor when he grows up. (become)", a: ["become"], e: "become + noun (a doctor)." },
+    { t: "m", q: "In 'The sky grew dark', the word 'dark' is…", o: ["a complement describing the sky", "an object", "an adverb of manner", "a preposition"], a: 0, e: "It tells us what the sky became." },
+    { t: "m", q: "Which sentence is VP 22?", o: ["The tea is too hot.", "I drank the tea.", "I gave him tea.", "He sat in the garden."], a: 0, e: "S + be + adjective." },
+    { t: "f", q: "The idea ______ good, but will it work? (sound — present)", a: ["sounds"], e: "Third person singular: sounds." },
+    { t: "m", q: "Choose the best word: The patient remained ______ all night.", o: ["quiet", "quietly", "quietness", "to quiet"], a: 0, e: "remain + adjective." },
+    { t: "m", q: "Which pair shows the same verb used as VP 22 and VP 1?", o: ["He looked angry. / He looked at the map.", "He grew tall. / He grew rice.", "She is kind. / She was kind.", "It rained. / It is raining."], a: 1, e: "'grew tall' = complement (VP 22); 'grew rice' = object (VP 1)." }
+  ] },
+
+{ id: "u03", level: 1, vp: "VP 1", title: "Subject + Verb + Object",
+  formula: "S + V + Direct Object",
+  explain: "Here the verb does something to a person or thing: the direct object. Ask 'what?' or 'whom?' after the verb to find it.",
+  ex: ["Meera plays the violin.", "We visited the museum.", "Did you lock the door?", "The dog bit the postman.", "I have lost my pen.", "He hurt himself."],
+  verbs: "know, want, like, need, see, find, lose, open, close, meet, visit, enjoy, answer",
+  watch: [{ bad: "Please answer to my letter.", good: "Please answer my letter.", note: "Answer, discuss, enter, reach and resemble take a direct object — no preposition." }],
+  qs: [
+    { t: "m", q: "Find the direct object: 'The farmers planted rice.'", o: ["rice", "farmers", "planted", "The"], a: 0, e: "Planted what? — rice." },
+    { t: "m", q: "Choose the correct sentence.", o: ["We discussed the problem.", "We discussed about the problem.", "We discussed on the problem.", "We discussed for the problem."], a: 0, e: "'Discuss' takes a direct object." },
+    { t: "m", q: "Choose the correct sentence.", o: ["The train reached Guwahati at noon.", "The train reached to Guwahati at noon.", "The train reached at Guwahati at noon.", "The train reached in Guwahati at noon."], a: 0, e: "reach + place (no preposition). Compare: arrive at / arrive in." },
+    { t: "f", q: "Be careful with the knife, or you will cut ______. (reflexive pronoun for 'you')", a: ["yourself"], e: "A reflexive pronoun can be the object." },
+    { t: "m", q: "Which sentence has a direct object?", o: ["She enjoyed the film.", "She went home.", "She is a teacher.", "She smiled."], a: 0, e: "Enjoyed what? — the film." },
+    { t: "f", q: "He ______ his father very closely. (resemble — present)", a: ["resembles"], e: "resemble + object, no 'to' or 'with'." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Please describe what you heard.", "Please describe me what you heard.", "Please describe to what you heard.", "Please describe about what you heard."], a: 0, e: "'Describe' + object. If you want a person, say 'describe it to me'." },
+    { t: "m", q: "Which sentence is correct?", o: ["The teacher entered the classroom.", "The teacher entered into the classroom.", "The teacher entered in the classroom.", "The teacher entered to the classroom."], a: 0, e: "enter + place." }
+  ] },
+
+{ id: "u04", level: 1, vp: "VP 19", title: "Giving: Indirect + Direct Object",
+  formula: "S + V + Indirect Object + Direct Object",
+  explain: "Verbs of giving and showing can have two objects: the person who receives (indirect object) and the thing given (direct object). The person comes first. We can also say: give the thing TO the person, or buy the thing FOR the person.",
+  ex: ["Grandma told us a story.", "Can you lend me your bicycle?", "She sent her brother a parcel.", "I will show you my garden.", "Dad bought me a new bag.", "The coach gave each player a medal."],
+  verbs: "give, lend, send, show, tell, offer, teach, bring, pass, buy, make, get, find, cook",
+  watch: [{ bad: "Please explain me this rule.", good: "Please explain this rule to me.", note: "Explain, describe, suggest and announce do NOT follow this pattern. Use 'to + person'." },
+          { bad: "She said me the answer.", good: "She told me the answer.", note: "'Tell' takes a person; 'say' does not." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["Explain the meaning to me.", "Explain me the meaning.", "Explain to me meaning.", "Explain me to the meaning."], a: 0, e: "'Explain' cannot take an indirect object before the direct object." },
+    { t: "m", q: "Which is correct?", o: ["He told me the news.", "He said me the news.", "He told the news me.", "He said to me news."], a: 0, e: "tell + person + thing." },
+    { t: "f", q: "Mother cooked ______ (we) a delicious dinner.", a: ["us"], e: "Object pronoun: us." },
+    { t: "m", q: "'I gave the book to Rina.' Which sentence means the same?", o: ["I gave Rina the book.", "I gave the book Rina.", "I gave to Rina book.", "I Rina gave the book."], a: 0, e: "Person first, then thing — no 'to'." },
+    { t: "m", q: "Which preposition? 'She bought a gift ___ her teacher.'", o: ["for", "to", "at", "with"], a: 0, e: "buy / make / cook / get something FOR someone." },
+    { t: "m", q: "Which preposition? 'Please pass the salt ___ me.'", o: ["to", "for", "at", "of"], a: 0, e: "give / pass / send / lend something TO someone." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Can you suggest a good book to me?", "Can you suggest me a good book?", "Can you suggest me to a good book?", "Can you suggest to me book?"], a: 0, e: "'Suggest' uses 'to + person'." },
+    { t: "f", q: "Will you ______ me your notes? I missed the class. (lend / borrow)", a: ["lend"], e: "You LEND something to someone; you BORROW something from someone." }
+  ] },
+
+{ id: "u05", level: 1, vp: "VP 23", title: "Verb + Where / How",
+  formula: "S + V + Adverbial (place, direction, manner)",
+  explain: "Some verbs need an adverbial to complete their meaning: where someone lives, where something lies, how someone behaves. Words such as in, out, up, back, upstairs, home often finish the sentence.",
+  ex: ["My cousins live in Jorhat.", "Please sit down.", "The keys are lying on the table.", "She walked out.", "We got home late.", "He behaves as if he were the boss."],
+  verbs: "live, stay, sit, stand, lie, come, go, get, arrive, behave, work",
+  watch: [{ bad: "We went to home early.", good: "We went home early.", note: "'Home' needs no 'to' after go, come, get, arrive." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["I came home at six.", "I came to home at six.", "I came at home at six.", "I came in home at six."], a: 0, e: "'home' is used without 'to'." },
+    { t: "m", q: "Which sentence is incomplete without its adverbial?", o: ["She lives near the river.", "She laughed loudly.", "She sang beautifully.", "She slept well."], a: 0, e: "'She lives.' alone doesn't say where — 'live' here needs the adverbial." },
+    { t: "f", q: "Stand ______! The national anthem is starting. (opposite of 'down')", a: ["up"], e: "stand up — an adverbial particle completes the verb." },
+    { t: "m", q: "Choose the correct word: He works very ______.", o: ["hard", "hardly", "harder of", "hardness"], a: 0, e: "'hard' is the adverb here. 'Hardly' means 'almost not'." },
+    { t: "m", q: "Choose the best sentence.", o: ["There is a temple on the hill.", "A temple is on the hill.", "On the hill is temple.", "There is on the hill a temple is."], a: 0, e: "When the subject is indefinite ('a temple'), English prefers 'There is…'." },
+    { t: "f", q: "The children ran ______ (direction: to the outside) to play.", a: ["out", "outside"], e: "run out / run outside." },
+    { t: "m", q: "Which is correct?", o: ["Here comes the bus!", "Here the bus comes!", "Here come the bus!", "Comes here the bus!"], a: 0, e: "With a noun subject: Here + verb + subject. With a pronoun: Here it comes!" },
+    { t: "m", q: "Choose the correct order.", o: ["There she goes!", "There goes she!", "Goes there she!", "She there goes!"], a: 0, e: "With a pronoun subject: There + pronoun + verb." }
+  ] },
+
+{ id: "u06", level: 1, vp: "Basics", title: "Asking and Saying No",
+  formula: "Helper verb (is, can, will, has, do…) + not / question order",
+  explain: "Helper verbs such as am, is, are, was, have, has, can, will, must and should make negatives by adding 'not' and questions by moving in front of the subject. Ordinary verbs need do, does or did. A short question at the end (a tag) uses the same helper verb.",
+  ex: ["She can't swim yet.", "Have you finished your homework?", "Does your brother play chess?", "We didn't see the match.", "It's cold today, isn't it?", "You won't forget, will you?"],
+  verbs: "am, is, are, was, were, have, has, had, do, does, did, can, could, will, would, shall, should, may, might, must",
+  watch: [{ bad: "Did you went to school?", good: "Did you go to school?", note: "After do, does or did, use the base form of the verb." }],
+  qs: [
+    { t: "m", q: "Make it negative: 'He likes mangoes.'", o: ["He doesn't like mangoes.", "He don't like mangoes.", "He doesn't likes mangoes.", "He not likes mangoes."], a: 0, e: "does not + base form." },
+    { t: "m", q: "Make a question: 'They have left.'", o: ["Have they left?", "Do they have left?", "Did they left?", "They have left?"], a: 0, e: "'Have' is a helper here — move it to the front." },
+    { t: "f", q: "You are coming with us, ______ you?", a: ["aren't"], e: "Positive sentence → negative tag with the same helper: aren't you?" },
+    { t: "f", q: "She didn't call, ______ she?", a: ["did"], e: "Negative sentence → positive tag." },
+    { t: "m", q: "Choose the correct question.", o: ["Where does she live?", "Where she lives?", "Where does she lives?", "Where lives she?"], a: 0, e: "Question word + does + subject + base verb." },
+    { t: "m", q: "Choose the correct tag: 'Let's go for a walk, ___?'", o: ["shall we", "will you", "don't we", "aren't we"], a: 0, e: "Let's … , shall we?" },
+    { t: "f", q: "I'm late, ______ I? (tag)", a: ["aren't"], e: "The tag for 'I am' is 'aren't I?'" },
+    { t: "m", q: "Which is correct?", o: ["Can you help me?", "Do you can help me?", "Can you to help me?", "You can help me do?"], a: 0, e: "'Can' never takes do; it is followed by a bare infinitive." }
+  ] },
+
+// ───────────────────────── LEVEL 2 ─────────────────────────
+{ id: "u07", level: 2, vp: "VP 2", title: "Verb + to-infinitive",
+  formula: "S + V + (not) to + verb",
+  explain: "Many verbs that talk about plans, wishes and attempts are followed by 'to' + a verb. Put 'not' before 'to' to make the infinitive negative.",
+  ex: ["Priya hopes to study medicine.", "They decided not to wait.", "I forgot to bring my lunch.", "He has promised to write every week.", "We are learning to drive.", "She pretended not to hear."],
+  verbs: "want, hope, decide, plan, promise, refuse, agree, learn, try, forget, remember, intend, pretend, offer, manage, fail, afford",
+  watch: [{ bad: "I want that you come.", good: "I want you to come.", note: "'Want' never takes a that-clause." },
+          { bad: "They decided to not go.", good: "They decided not to go.", note: "'Not' goes before 'to'." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["He refused to answer.", "He refused answering.", "He refused that he answer.", "He refused answer."], a: 0, e: "refuse + to-infinitive." },
+    { t: "f", q: "We can't afford ______ a new car this year. (buy)", a: ["to buy"], e: "afford + to-infinitive." },
+    { t: "m", q: "Where does 'not' go? 'She promised ___ late again.'", o: ["not to be", "to not be", "to be not", "not be to"], a: 0, e: "not + to-infinitive." },
+    { t: "f", q: "Did you remember ______ the lights off? (switch)", a: ["to switch"], e: "remember to do = not forget to do (a future duty)." },
+    { t: "m", q: "Which verb is NOT followed by a to-infinitive?", o: ["enjoy", "hope", "decide", "plan"], a: 0, e: "'Enjoy' takes -ing: enjoy playing." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I have to leave early today.", "I have leave early today.", "I have leaving early today.", "I have for leave early today."], a: 0, e: "'have to' + verb expresses obligation." },
+    { t: "f", q: "He managed ______ the last bus. (catch)", a: ["to catch"], e: "manage + to-infinitive = succeed in doing." },
+    { t: "m", q: "'You had better ___ now.' Choose the correct form.", o: ["go", "to go", "going", "gone"], a: 0, e: "'had better' and 'would rather' are followed by a bare infinitive." }
+  ] },
+
+{ id: "u08", level: 2, vp: "VP 17", title: "Verb + -ing (gerund)",
+  formula: "S + V + verb-ing",
+  explain: "Some verbs are followed by the -ing form of another verb (the gerund). Learn these verbs as a group: enjoy, finish, avoid, mind, keep, practise, suggest, deny, give up, can't help.",
+  ex: ["My sister enjoys painting.", "Have you finished packing?", "Would you mind closing the window?", "He kept talking during the film.", "She denied breaking the vase.", "I can't help laughing at his jokes."],
+  verbs: "enjoy, finish, avoid, mind, keep, practise, suggest, deny, miss, risk, imagine, give up, put off, can't help, can't stand",
+  watch: [{ bad: "I suggest to start early.", good: "I suggest starting early. / I suggest that we start early.", note: "'Suggest' never takes a to-infinitive." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["She avoids eating junk food.", "She avoids to eat junk food.", "She avoids eat junk food.", "She avoids that she eats junk food."], a: 0, e: "avoid + -ing." },
+    { t: "f", q: "Would you mind ______ a little louder? (speak)", a: ["speaking"], e: "mind + -ing." },
+    { t: "m", q: "Choose the correct sentence.", o: ["He suggested going by train.", "He suggested to go by train.", "He suggested us to go by train.", "He suggested go by train."], a: 0, e: "suggest + -ing (or suggest that…)." },
+    { t: "f", q: "My grandfather gave up ______ ten years ago. (smoke)", a: ["smoking"], e: "give up + -ing." },
+    { t: "m", q: "Which verb takes -ing?", o: ["practise", "hope", "want", "promise"], a: 0, e: "practise speaking, practise writing." },
+    { t: "f", q: "I can't help ______ when I see that video. (smile)", a: ["smiling"], e: "can't help + -ing = can't stop myself." },
+    { t: "m", q: "'Reading is my hobby.' Here 'reading' is…", o: ["a gerund used as subject", "a present participle in a tense", "an adjective", "an infinitive"], a: 0, e: "A gerund behaves like a noun." },
+    { t: "f", q: "They finished ______ the hall at midnight. (decorate)", a: ["decorating"], e: "finish + -ing." }
+  ] },
+
+{ id: "u09", level: 2, vp: "VP 25", title: "Verb + to-infinitive of Purpose",
+  formula: "S + V + to + verb (= in order to)",
+  explain: "Here the verb is complete on its own, and the to-infinitive tells us WHY (purpose) or WHAT HAPPENED next (result). Ask 'Why?' — if 'in order to' fits, it is purpose.",
+  ex: ["We stopped to buy some fruit.", "She went to the post office to send a letter.", "He stood on a chair to reach the shelf.", "I came here to learn.", "They hurried to catch the train.", "He woke up to find the house empty."],
+  verbs: "come, go, stop, wait, hurry, run, stand, sit, live (to be 90), wake (to find)",
+  watch: [{ bad: "She went to the market for buying vegetables.", good: "She went to the market to buy vegetables.", note: "Use the to-infinitive, not 'for + -ing', to show a person's purpose." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["He went to the bank to withdraw money.", "He went to the bank for withdraw money.", "He went to the bank for to withdraw money.", "He went to the bank withdrawing money."], a: 0, e: "to-infinitive of purpose." },
+    { t: "m", q: "'We stopped to have tea.' This means…", o: ["We stopped what we were doing so that we could have tea.", "We no longer have tea.", "We stopped drinking tea.", "We hate tea."], a: 0, e: "stop + to-infinitive = stop in order to do." },
+    { t: "f", q: "She saved money ______ a laptop. (buy — purpose)", a: ["to buy"], e: "Purpose: to buy." },
+    { t: "m", q: "Which sentence shows RESULT, not purpose?", o: ["He returned home to find his dog waiting.", "He returned home to rest.", "He returned home to fetch his book.", "He returned home to change."], a: 0, e: "He didn't go home in order to find the dog — it is what he discovered." },
+    { t: "f", q: "Speak slowly so as not ______ the children. (confuse)", a: ["to confuse"], e: "so as not to = negative purpose." },
+    { t: "m", q: "Choose the best sentence.", o: ["My great-grandmother lived to be ninety-five.", "My great-grandmother lived for being ninety-five.", "My great-grandmother lived being ninety-five.", "My great-grandmother lived that she was ninety-five."], a: 0, e: "live to be + age (outcome)." },
+    { t: "m", q: "'I ran to help her.' What does the to-infinitive tell us?", o: ["why I ran", "where I ran", "when I ran", "how fast I ran"], a: 0, e: "Purpose — why." },
+    { t: "f", q: "We got up early ______ the sunrise. (watch)", a: ["to watch"], e: "Purpose." }
+  ] },
+
+{ id: "u10", level: 2, vp: "VP 24", title: "Verb + Preposition + Object",
+  formula: "S + V + preposition + object",
+  explain: "Some verbs must be followed by a particular preposition. Learn the verb and its preposition together, as one unit: listen to, look at, depend on, belong to, wait for, succeed in, agree with, complain about.",
+  ex: ["Everyone listened to the speaker.", "This umbrella belongs to my aunt.", "We are waiting for the results.", "Our trip depends on the weather.", "She succeeded in winning the scholarship.", "I agree with you."],
+  verbs: "listen to, look at, look for, wait for, depend on, rely on, belong to, succeed in, insist on, agree with, agree to, apologise for, complain about, care for, long for",
+  watch: [{ bad: "Please listen me.", good: "Please listen to me.", note: "'Listen' always needs 'to' before its object." }],
+  qs: [
+    { t: "m", q: "Choose the correct preposition: 'You can rely ___ him.'", o: ["on", "in", "at", "to"], a: 0, e: "rely on / depend on." },
+    { t: "m", q: "Choose the correct preposition: 'He succeeded ___ passing the test.'", o: ["in", "to", "on", "at"], a: 0, e: "succeed in + -ing." },
+    { t: "f", q: "Who does this red pen belong ______?", a: ["to"], e: "belong to someone." },
+    { t: "m", q: "Choose the correct sentence.", o: ["She insisted on paying the bill.", "She insisted to pay the bill.", "She insisted paying the bill.", "She insisted for paying the bill."], a: 0, e: "insist on + -ing." },
+    { t: "m", q: "Which is correct? 'I agree ___ your plan.' (= I accept the proposal)", o: ["to", "with", "at", "for"], a: 0, e: "agree TO a plan/proposal; agree WITH a person or opinion." },
+    { t: "f", q: "Stop staring! It's rude to look ______ people like that.", a: ["at"], e: "look at." },
+    { t: "m", q: "Make it passive: 'People can rely on that man.'", o: ["That man can be relied on.", "That man can be relied.", "That man can relied on.", "On that man can be relied."], a: 0, e: "In the passive, the preposition stays at the end." },
+    { t: "f", q: "The students apologised ______ being late.", a: ["for"], e: "apologise for something." }
+  ] },
+
+{ id: "u11", level: 2, vp: "VP 10", title: "Verb + Object + Where",
+  formula: "S + V + Object + Adverbial",
+  explain: "Verbs such as put, place, keep, take and leave need an object AND a word that says where. With short particles (on, off, away, back, up) the order depends on the object: a noun can go before or after the particle, but a pronoun (it, them) must go before.",
+  ex: ["Put the milk in the fridge.", "She hung her coat on the hook.", "Please take your shoes off.", "Please take off your shoes.", "Put it away.", "He kept his hands in his pockets."],
+  verbs: "put, place, set, lay, keep, leave, take, bring, send, throw, hang, turn (on/off), switch (on/off)",
+  watch: [{ bad: "Switch off it.", good: "Switch it off.", note: "A pronoun object goes between the verb and the particle." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["Turn it off.", "Turn off it.", "It turn off.", "Off turn it."], a: 0, e: "Pronoun before the particle." },
+    { t: "m", q: "Which two are BOTH correct?", o: ["Put on your helmet. / Put your helmet on.", "Put on it. / Put it on.", "Put on them. / Put them on.", "On put it. / Put it on."], a: 0, e: "A noun can go either side of the particle." },
+    { t: "f", q: "These toys are lying everywhere. Please put ______ away. (pronoun)", a: ["them"], e: "put them away." },
+    { t: "m", q: "Which sentence is VP 10?", o: ["She placed the vase on the table.", "She bought a vase.", "She is a potter.", "She gave me a vase."], a: 0, e: "verb + object + place." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Please bring it back tomorrow.", "Please bring back it tomorrow.", "Please back bring it tomorrow.", "Please bring it tomorrow back it."], a: 0, e: "bring it back." },
+    { t: "f", q: "Don't leave your bag ______ the floor. (preposition)", a: ["on"], e: "leave something on the floor." },
+    { t: "m", q: "For a long object, which order sounds best?", o: ["Throw away all the papers that are torn.", "Throw all the papers that are torn away.", "Away throw all the papers that are torn.", "Throw all away the papers that are torn."], a: 0, e: "A long, 'heavy' object comes last." },
+    { t: "f", q: "It's dark in here. Could you switch the light ______?", a: ["on"], e: "switch on / switch the light on." }
+  ] },
+
+{ id: "u12", level: 2, vp: "VP 20", title: "Verb + How Far / How Long",
+  formula: "S + V + (for) + distance / time / weight / price",
+  explain: "Some verbs are followed by a phrase of distance, time, weight or price. 'For' is often optional before time and distance.",
+  ex: ["We walked (for) five kilometres.", "The meeting lasted two hours.", "The parcel weighs three kilos.", "This shirt cost four hundred rupees.", "I waited (for) twenty minutes.", "The festival lasts a week."],
+  verbs: "walk, run, swim, wait, last, stay, weigh, cost, measure",
+  watch: [{ bad: "The book costed fifty rupees.", good: "The book cost fifty rupees.", note: "'Cost' does not change in the past." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["The film lasted three hours.", "The film lasted for three hours long.", "The film was lasting three hours ago.", "The film lasted since three hours."], a: 0, e: "last + time." },
+    { t: "f", q: "Yesterday the tickets ______ ninety rupees each. (cost)", a: ["cost"], e: "cost – cost – cost." },
+    { t: "m", q: "Which word is NOT needed? 'We waited for an hour.'", o: ["for (it is optional)", "We", "waited", "hour"], a: 0, e: "'We waited an hour' is also correct." },
+    { t: "m", q: "Choose the correct question.", o: ["How much does it weigh?", "How much it weighs?", "How much does it weighs?", "How weighs it?"], a: 0, e: "does + subject + base form." },
+    { t: "f", q: "She swam (for) ______ hour without stopping. (article)", a: ["an"], e: "'an hour' — 'hour' begins with a vowel sound." },
+    { t: "m", q: "Which sentence is VP 20?", o: ["The storm lasted all night.", "The storm damaged the roof.", "The storm was violent.", "The storm came suddenly."], a: 0, e: "last + time phrase." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I have been waiting for two hours.", "I am waiting since two hours.", "I wait from two hours.", "I have waited since two hours."], a: 0, e: "'for' + a period of time; 'since' + a point of time." },
+    { t: "f", q: "We stayed in Shillong ______ a whole week.", a: ["for"], e: "stay (for) + a period of time." }
+  ] },
+
+{ id: "u13", level: 2, vp: "VP 7", title: "Verb + Object + Adjective",
+  formula: "S + V + Object + Adjective",
+  explain: "After the object we put an adjective that shows the result or state of the object: make someone happy, keep the room clean, paint a wall blue, find a box empty.",
+  ex: ["The news made everyone happy.", "Keep your desk tidy.", "They painted the gate green.", "I found the classroom empty.", "Don't leave the door open.", "The heat drove the dogs crazy."],
+  verbs: "make, keep, leave, get, paint, colour, find, push (open), set (free), wipe (clean), turn",
+  watch: [{ bad: "Please keep the room cleanly.", good: "Please keep the room clean.", note: "The word describes the object, so it is an adjective." }],
+  qs: [
+    { t: "m", q: "Choose the correct word: 'The long walk made me ___.'", o: ["hungry", "hungrily", "hunger", "to hungry"], a: 0, e: "make + object + adjective." },
+    { t: "f", q: "Please keep the door ______. It's hot inside. (opposite of 'shut')", a: ["open"], e: "keep the door open." },
+    { t: "m", q: "'I found the test easy.' This means…", o: ["I thought the test was easy.", "I looked for the test easily.", "I easily found the test paper.", "The test found me."], a: 0, e: "find + object + adjective = discover/feel that it is…" },
+    { t: "m", q: "Make it passive: 'They set the birds free.'", o: ["The birds were set free.", "The birds were set freely.", "The birds set free were.", "Free were set the birds."], a: 0, e: "The adjective stays after the verb." },
+    { t: "f", q: "Wipe the board ______ before the next class. (adjective)", a: ["clean"], e: "wipe something clean." },
+    { t: "m", q: "Choose the correct sentence.", o: ["He made it clear that he disagreed.", "He made clear it that he disagreed.", "He made that he disagreed clear.", "He clear made it that he disagreed."], a: 0, e: "Use preparatory 'it' when the object is a that-clause." },
+    { t: "m", q: "Which sentence is VP 7?", o: ["Hard work kept him busy.", "Hard work is good.", "He works hard.", "He likes hard work."], a: 0, e: "keep + him + busy." },
+    { t: "f", q: "The cold wind turned her cheeks ______. (colour)", a: ["red", "pink"], e: "turn + object + adjective of colour." }
+  ] },
+
+{ id: "u14", level: 2, vp: "VP 8", title: "Verb + Object + Noun",
+  formula: "S + V + Object + Noun",
+  explain: "The noun after the object names what the object becomes or is called: elect someone captain, name a baby Riya, make someone the leader, call a place home.",
+  ex: ["The class elected Arjun monitor.", "They named their daughter Ishani.", "We call our dog Bholu.", "The board appointed her principal.", "His hard work made him a champion.", "They crowned the winner queen of the festival."],
+  verbs: "elect, appoint, name, call, make, crown, choose, consider, think",
+  watch: [{ bad: "They elected him as a captain.", good: "They elected him captain.", note: "No article before a title held by one person: elect him captain / chairman / president." }],
+  qs: [
+    { t: "m", q: "Choose the best sentence.", o: ["We chose Neha leader of the group.", "We chose Neha a leader of the group.", "We chose to Neha leader.", "We chose leader Neha of the group."], a: 0, e: "A unique role usually takes no article." },
+    { t: "f", q: "Everybody ______ him 'Babu', though his real name is Rajiv. (call — present)", a: ["calls"], e: "call + object + noun." },
+    { t: "m", q: "Which sentence is VP 8?", o: ["They made him captain.", "They made him laugh.", "They made him angry.", "They made him a cake."], a: 0, e: "him = captain (the object becomes the noun). 'Made him a cake' is VP 19." },
+    { t: "m", q: "Make it passive: 'They appointed Mr Das secretary.'", o: ["Mr Das was appointed secretary.", "Mr Das was appointed to secretary.", "Secretary was appointed Mr Das.", "Mr Das appointed secretary."], a: 0, e: "The noun stays after the verb." },
+    { t: "f", q: "The parents ______ the baby Aarav. (name — past)", a: ["named"], e: "name + object + noun." },
+    { t: "m", q: "In 'They made him a cake', what is 'a cake'?", o: ["direct object (he received a cake)", "what he became", "an adjective", "an adverb"], a: 0, e: "He didn't become a cake! This is VP 19." },
+    { t: "m", q: "Choose the correct sentence.", o: ["The school made reading a daily habit.", "The school made reading to a daily habit.", "The school made reading as daily habit.", "The school made a daily habit reading to."], a: 0, e: "make + object + noun." },
+    { t: "f", q: "The people ______ (elect — past) her mayor for a second time.", a: ["elected"], e: "elect + object + noun." }
+  ] },
+
+// ───────────────────────── LEVEL 3 ─────────────────────────
+{ id: "u15", level: 3, vp: "VP 3", title: "Verb + Object + to-infinitive",
+  formula: "S + V + Object + (not) to + verb",
+  explain: "Verbs of asking, telling, wanting and allowing are often followed by a person and a to-infinitive. The person is the one who does the second action.",
+  ex: ["The teacher asked us to sit quietly.", "My parents allowed me to go on the trip.", "I want you to listen carefully.", "She warned her son not to touch the stove.", "The doctor advised him to rest.", "We invited them to stay for dinner."],
+  verbs: "ask, tell, want, allow, permit, advise, warn, invite, order, encourage, expect, remind, persuade, force, help, teach",
+  watch: [{ bad: "He told that I should come.", good: "He told me to come.", note: "'Tell' needs a person object." },
+          { bad: "She made me to wait.", good: "She made me wait.", note: "'Make' and 'let' take a bare infinitive (VP 5), not 'to'." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["I want you to help me.", "I want that you help me.", "I want you help me.", "I want you helping me."], a: 0, e: "want + object + to-infinitive." },
+    { t: "f", q: "The coach told the players ______ late. (not / be)", a: ["not to be"], e: "tell + object + not + to-infinitive." },
+    { t: "m", q: "Make it passive: 'They warned me not to go out.'", o: ["I was warned not to go out.", "I was warned to not going out.", "I warned not to go out.", "Me was warned not to go out."], a: 0, e: "Object becomes subject; the to-infinitive stays." },
+    { t: "f", q: "Please remind me ______ the bill. (pay)", a: ["to pay"], e: "remind + person + to-infinitive." },
+    { t: "m", q: "Choose the correct sentence.", o: ["She encouraged her students to ask questions.", "She encouraged to her students ask questions.", "She encouraged her students asking questions.", "She encouraged that her students ask questions to."], a: 0, e: "encourage + object + to-infinitive." },
+    { t: "m", q: "Which verb does NOT fit 'He ___ me to stay.'?", o: ["suggested", "asked", "wanted", "persuaded"], a: 0, e: "'Suggest' cannot take object + to-infinitive. Say: He suggested that I (should) stay." },
+    { t: "m", q: "Choose the most natural sentence.", o: ["I don't want there to be any trouble.", "I don't want any trouble to be.", "I don't want that there is trouble.", "I don't want trouble be."], a: 0, e: "When 'be' has no complement, use 'there to be'." },
+    { t: "f", q: "Who taught you ______ so well? (sing)", a: ["to sing"], e: "teach + person + to-infinitive." }
+  ] },
+
+{ id: "u16", level: 3, vp: "VP 5", title: "Verb + Object + Bare Infinitive",
+  formula: "S + V + Object + verb (no 'to')",
+  explain: "Two groups of verbs take an object and an infinitive WITHOUT 'to'. (A) Verbs of the senses — see, hear, watch, feel, notice — for a complete action. (B) make, let, have and often help. In the passive, 'to' comes back: He was made to apologise.",
+  ex: ["I heard someone knock at the door.", "We watched the sun go down.", "Let me carry that bag.", "The joke made everyone laugh.", "Did you see the boy fall?", "Please have the driver wait outside."],
+  verbs: "see, hear, watch, feel, notice, observe, listen to, look at, make, let, have, help, bid",
+  watch: [{ bad: "Let me to explain.", good: "Let me explain.", note: "No 'to' after let and make in the active voice." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["My mother made me apologise.", "My mother made me to apologise.", "My mother made me apologising.", "My mother made that I apologise."], a: 0, e: "make + object + bare infinitive." },
+    { t: "m", q: "Make it passive: 'They made him repeat the work.'", o: ["He was made to repeat the work.", "He was made repeat the work.", "He was made repeating the work.", "He made to repeat the work."], a: 0, e: "In the passive, 'to' is needed." },
+    { t: "f", q: "Will your parents let you ______ the film? (watch)", a: ["watch"], e: "let + object + bare infinitive." },
+    { t: "m", q: "'I saw her cross the road.' This suggests…", o: ["I saw the whole action from start to finish.", "I saw only part of the action.", "She was going to cross.", "I didn't see her."], a: 0, e: "Bare infinitive = complete action. Compare 'I saw her crossing' (in progress)." },
+    { t: "f", q: "I felt the ground ______ under my feet. (shake)", a: ["shake"], e: "feel + object + bare infinitive." },
+    { t: "m", q: "Which is correct?", o: ["Could you help me (to) lift this box?", "Could you help me lifting this box?", "Could you help to me lift this box?", "Could you help me that I lift this box?"], a: 0, e: "help can take the infinitive with or without 'to'." },
+    { t: "m", q: "Choose the correct sentence.", o: ["What makes you think so?", "What makes you to think so?", "What makes you thinking so?", "What makes that you think so?"], a: 0, e: "make + object + bare infinitive." },
+    { t: "f", q: "Listen to the birds ______ ! (sing)", a: ["sing"], e: "'Listen to' and 'look at' work like see/hear here." }
+  ] },
+
+{ id: "u17", level: 3, vp: "VP 6", title: "Verb + Object + -ing",
+  formula: "S + V + Object + verb-ing",
+  explain: "Here the -ing form shows an action in progress. With see, hear, watch and smell it means we noticed the action while it was going on. Other verbs — find, catch, keep, leave, set, start, get — also use this pattern.",
+  ex: ["I saw a snake sliding through the grass.", "Can you smell something burning?", "The teacher caught two boys copying.", "Don't keep the guests waiting.", "We left the baby sleeping.", "The story set me thinking."],
+  verbs: "see, hear, watch, feel, smell, notice, find, catch, keep, leave, set, start, get, have (= allow)",
+  watch: [{ bad: "Sorry for keeping you wait.", good: "Sorry for keeping you waiting.", note: "'Keep' + object + -ing." }],
+  qs: [
+    { t: "m", q: "'I heard the children singing.' This means…", o: ["The singing was going on when I heard it.", "I heard the whole song from start to end.", "The children will sing.", "The children stopped singing."], a: 0, e: "-ing = action in progress." },
+    { t: "f", q: "Sorry to keep you ______. (wait)", a: ["waiting"], e: "keep + object + -ing." },
+    { t: "m", q: "Make it passive: 'Someone found him sleeping under a tree.'", o: ["He was found sleeping under a tree.", "He was found to sleeping under a tree.", "He found sleeping under a tree.", "He was found sleep under a tree."], a: 0, e: "The -ing form stays the same." },
+    { t: "f", q: "The guard caught the thief ______ over the wall. (climb)", a: ["climbing"], e: "catch + object + -ing." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Get the engine running before it gets cold.", "Get the engine to running before it gets cold.", "Get the engine run before it gets cold.", "Get running the engine to before."], a: 0, e: "get + object + -ing." },
+    { t: "m", q: "Which sentence shows a COMPLETE action?", o: ["I watched him score the goal.", "I watched him dribbling the ball.", "I watched them playing.", "I watched the rain falling."], a: 0, e: "Bare infinitive (VP 5) = complete action; -ing (VP 6) = in progress." },
+    { t: "f", q: "I can't have you ______ like that in class! (behave)", a: ["behaving"], e: "can't have + object + -ing = won't allow." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Can you imagine my grandmother riding a scooter?", "Can you imagine my grandmother to ride a scooter?", "Can you imagine my grandmother rides a scooter?", "Can you imagine to my grandmother riding?"], a: 0, e: "imagine + object + -ing." }
+  ] },
+
+{ id: "u18", level: 3, vp: "VP 9", title: "Verb + Object + Past Participle",
+  formula: "S + V + Object + past participle",
+  explain: "Use have or get + object + past participle when someone else does a job for you: I had my hair cut. It can also show something that happened to you: She had her phone stolen. Want, like, need, see, hear and find also use this pattern.",
+  ex: ["I had my eyes tested.", "We are getting our house painted.", "She had her purse stolen on the bus.", "I want this letter typed by noon.", "He heard his name called.", "They found the window broken."],
+  verbs: "have, get, want, need, like, prefer, see, hear, find, make (oneself understood)",
+  watch: [{ bad: "I cut my hair yesterday. (when a barber did it)", good: "I had my hair cut yesterday.", note: "If someone else does the job, use have / get + object + past participle." }],
+  qs: [
+    { t: "m", q: "Your tailor stitched your new kurta. You say…", o: ["I had my kurta stitched.", "I stitched my kurta.", "I had stitched my kurta.", "I had my kurta stitch."], a: 0, e: "have + object + past participle." },
+    { t: "f", q: "Where do you get your shoes ______? (repair)", a: ["repaired"], e: "get + object + past participle." },
+    { t: "m", q: "Choose the correct sentence.", o: ["He couldn't make himself understood.", "He couldn't make himself understand.", "He couldn't make himself understanding.", "He couldn't make himself to understand."], a: 0, e: "make oneself understood = make others understand you." },
+    { t: "f", q: "I heard my name ______ (call) from the back of the hall.", a: ["called"], e: "hear + object + past participle (passive meaning)." },
+    { t: "m", q: "'She had her bag snatched.' This means…", o: ["Someone snatched her bag (a bad experience).", "She paid someone to snatch her bag.", "She snatched a bag.", "Her bag is still with her."], a: 0, e: "have + object + past participle can show an unpleasant experience." },
+    { t: "f", q: "We need the documents ______ (sign) today.", a: ["signed"], e: "need + object + past participle." },
+    { t: "m", q: "Which is VP 9?", o: ["They had the room cleaned.", "They had cleaned the room.", "They cleaned the room.", "They had a clean room."], a: 0, e: "'had cleaned' is a past perfect tense — a different structure." },
+    { t: "f", q: "I'd like these photos ______ (print) in colour.", a: ["printed"], e: "like + object + past participle." }
+  ] },
+
+{ id: "u19", level: 3, vp: "VP 11", title: "Verb + that-clause",
+  formula: "S + V + (that) + clause",
+  explain: "Verbs of saying, thinking, knowing, hoping and deciding are often followed by a clause. 'That' is often left out in conversation.",
+  ex: ["I think (that) it will rain.", "She said (that) she was busy.", "We hope (that) you feel better soon.", "He admitted that he had made a mistake.", "They decided that the picnic should be postponed.", "I suppose you're right."],
+  verbs: "say, think, know, believe, hope, decide, agree, feel, suppose, admit, explain, suggest, notice, realise, wish",
+  watch: [{ bad: "I hope that you to come.", good: "I hope (that) you will come.", note: "A that-clause has its own subject and full verb." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["He said that he was tired.", "He said me that he was tired.", "He said to tired.", "He said him tired."], a: 0, e: "say + that-clause (no person object)." },
+    { t: "m", q: "Which word can be left out? 'I know that you are busy.'", o: ["that", "know", "you", "are"], a: 0, e: "'That' is often omitted after common verbs." },
+    { t: "f", q: "She suggested that we ______ (take) a taxi.", a: ["take", "should take"], e: "suggest that + subject + (should) + base verb." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I realised that I had left my keys behind.", "I realised to leave my keys behind.", "I realised me that I had left my keys.", "I realised leaving my keys that."], a: 0, e: "realise + that-clause." },
+    { t: "f", q: "Do you think ______ (it / pronoun + will) be sunny tomorrow?", a: ["it will", "that it will"], e: "think (that) it will…" },
+    { t: "m", q: "Which verb CANNOT be followed directly by a that-clause?", o: ["want", "hope", "think", "believe"], a: 0, e: "Use 'want someone to do' (VP 3)." },
+    { t: "m", q: "Choose the polite reply: 'Will it rain?'", o: ["I'm afraid so.", "I'm afraid it.", "I'm afraid that.", "I'm afraid yes."], a: 0, e: "'so' replaces a that-clause after think, hope, suppose, be afraid." },
+    { t: "f", q: "I hope ______. (short reply meaning 'I hope it will not happen')", a: ["not"], e: "I hope so / I hope not." }
+  ] },
+
+{ id: "u20", level: 3, vp: "VP 12", title: "Verb + Person + that-clause",
+  formula: "S + V + Object + (that) + clause",
+  explain: "Some verbs need a person object before the that-clause: tell, inform, remind, warn, assure, convince, promise, persuade.",
+  ex: ["She told me (that) she would be late.", "Please remind him that the shop closes at six.", "The pilot assured us that there was no danger.", "We warned them that the road was flooded.", "I promised Mother that I would study.", "He convinced the judges that he was innocent."],
+  verbs: "tell, inform, remind, warn, assure, convince, persuade, promise, satisfy, teach, show",
+  watch: [{ bad: "He informed that the train was late.", good: "He informed us that the train was late.", note: "'Inform' and 'tell' need a person object." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["She told us that the exam was postponed.", "She told that the exam was postponed.", "She said us that the exam was postponed.", "She told to us the exam postponed."], a: 0, e: "tell + person + that-clause." },
+    { t: "f", q: "The principal informed ______ (the parents) that the school would reopen on Monday.", a: ["the parents"], e: "inform + person + that-clause." },
+    { t: "m", q: "Which verb fits? 'He ___ that he was right.' (no person)", o: ["insisted", "told", "informed", "assured"], a: 0, e: "insist + that-clause (VP 11). The others need a person (VP 12)." },
+    { t: "f", q: "Can you assure ______ (I) that this is safe?", a: ["me"], e: "Object pronoun." },
+    { t: "m", q: "Make it passive: 'They told us that the bus was cancelled.'", o: ["We were told that the bus was cancelled.", "We told that the bus was cancelled.", "That the bus was cancelled told us.", "Us were told the bus was cancelled."], a: 0, e: "The person becomes the subject." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I reminded her that the library books were due.", "I reminded that the library books were due.", "I reminded to her that books due.", "I reminded her the library books that were due."], a: 0, e: "remind + person + that-clause." },
+    { t: "f", q: "I warned ______ (they) that the dog might bite.", a: ["them"], e: "warn + person + that-clause." },
+    { t: "m", q: "Choose the correct sentence.", o: ["He promised me that he would return the book.", "He promised that me he would return the book.", "He promised to me that returning the book.", "He promised me return the book."], a: 0, e: "promise + person + that-clause." }
+  ] },
+
+{ id: "u21", level: 3, vp: "VP 18", title: "Verb + Object + Preposition + Object",
+  formula: "S + V + Object + preposition + Object",
+  explain: "These verbs have a direct object and then a fixed preposition with a second object: thank someone FOR, blame someone FOR, accuse someone OF, remind someone OF, congratulate someone ON, protect someone FROM, compare one thing WITH another.",
+  ex: ["We thanked the driver for his help.", "She congratulated her friend on her success.", "They accused him of cheating.", "This song reminds me of my village.", "Don't blame others for your mistakes.", "Sunglasses protect your eyes from the glare."],
+  verbs: "thank for, blame for, accuse of, remind of, rob of, congratulate on, protect from, prevent from, compare with, provide with, explain to, introduce to, borrow from",
+  watch: [{ bad: "They congratulated him for winning.", good: "They congratulated him on winning.", note: "congratulate ON." }],
+  qs: [
+    { t: "m", q: "Choose the correct preposition: 'They accused the boy ___ lying.'", o: ["of", "for", "on", "with"], a: 0, e: "accuse of." },
+    { t: "f", q: "Thank you ______ the lovely gift.", a: ["for"], e: "thank someone for something." },
+    { t: "m", q: "Choose the correct preposition: 'Let me introduce you ___ my aunt.'", o: ["to", "with", "for", "at"], a: 0, e: "introduce someone to someone." },
+    { t: "f", q: "Heavy rain prevented us ______ going out.", a: ["from"], e: "prevent someone from doing." },
+    { t: "m", q: "Choose the correct sentence.", o: ["The school provides students with free books.", "The school provides students free books with.", "The school provides with students free books.", "The school provides to students with books."], a: 0, e: "provide someone with something (or provide something for someone)." },
+    { t: "m", q: "Choose the correct preposition: 'We congratulated Ravi ___ his new job.'", o: ["on", "for", "of", "at"], a: 0, e: "congratulate on." },
+    { t: "f", q: "This photo reminds me ______ our school trip.", a: ["of"], e: "remind someone of something (= make you remember)." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Can you explain this problem to me?", "Can you explain me this problem?", "Can you explain this problem me?", "Can you explain to me for this problem?"], a: 0, e: "explain something to someone." }
+  ] },
+
+{ id: "u22", level: 3, vp: "Tense", title: "Present Time",
+  formula: "Simple present (habit, fact) · Present progressive (now, around now)",
+  explain: "Use the simple present for habits, facts and things that are always true. Use the present progressive (am/is/are + -ing) for actions happening now or around now, and for temporary situations. Some verbs (know, like, want, belong, understand, see, hear) are rarely used in the progressive.",
+  ex: ["The sun rises in the east.", "Riya goes to school by bus.", "Look! It is snowing in the hills.", "We are studying for our exams this week.", "I understand the question now.", "This bag belongs to Kabir."],
+  verbs: "know, like, love, want, need, belong, own, understand, believe, seem, see, hear (usually NOT progressive)",
+  watch: [{ bad: "I am knowing the answer.", good: "I know the answer.", note: "'Know' describes a state, so it does not take the progressive." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["Water boils at 100°C.", "Water is boiling at 100°C always.", "Water boil at 100°C.", "Water boiling at 100°C."], a: 0, e: "A scientific fact → simple present." },
+    { t: "f", q: "Quiet, please! The baby ______. (sleep)", a: ["is sleeping"], e: "Happening now → present progressive." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I want a glass of water.", "I am wanting a glass of water.", "I wanting a glass of water.", "I am want a glass of water."], a: 0, e: "'want' is a state verb." },
+    { t: "f", q: "My father ______ (read) the newspaper every morning.", a: ["reads"], e: "Habit → simple present, third person -s." },
+    { t: "m", q: "Which is best for a temporary situation?", o: ["My uncle is staying with us this month.", "My uncle stays with us this month.", "My uncle stay with us this month.", "My uncle has stay with us."], a: 0, e: "Temporary → present progressive." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Do you hear that noise?", "Are you hearing that noise?", "Do you hearing that noise?", "You are hear that noise?"], a: 0, e: "'hear' (perception) is usually simple." },
+    { t: "f", q: "Look! Those boys ______ (climb) the wall!", a: ["are climbing"], e: "Look! signals an action happening now." },
+    { t: "m", q: "Choose the sentence about a habit.", o: ["She always forgets her umbrella.", "She is forgetting her umbrella now.", "She forgot her umbrella yesterday.", "She will forget her umbrella."], a: 0, e: "'always' + simple present = habit." }
+  ] },
+
+{ id: "u23", level: 3, vp: "Tense", title: "Past Time and the Present Perfect",
+  formula: "Simple past (finished time) · Present perfect (past action, present link)",
+  explain: "Use the simple past for actions at a finished time (yesterday, last year, in 2020, ago). Use the present perfect (have/has + past participle) when the time is not stated or continues up to now (ever, never, just, already, yet, since, for).",
+  ex: ["We visited Shillong last summer.", "I have never seen snow.", "She has just finished her lunch.", "They lived in Delhi for ten years. (They don't live there now.)", "They have lived here since 2019. (They still live here.)", "Have you ever ridden a horse?"],
+  verbs: "time words — past: yesterday, ago, last, in 2020, when · perfect: ever, never, just, already, yet, since, for, so far",
+  watch: [{ bad: "I have seen him yesterday.", good: "I saw him yesterday.", note: "A finished time word (yesterday) needs the simple past." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["I met her two days ago.", "I have met her two days ago.", "I have meet her two days ago.", "I meeting her two days ago."], a: 0, e: "'ago' = finished time → simple past." },
+    { t: "f", q: "Have you ever ______ (eat) a jackfruit?", a: ["eaten"], e: "ever → present perfect: have + past participle (eaten)." },
+    { t: "m", q: "Choose 'since' or 'for': 'She has worked here ___ 2018.'", o: ["since", "for", "from", "ago"], a: 0, e: "since + a point of time." },
+    { t: "m", q: "Choose 'since' or 'for': 'They have been friends ___ ten years.'", o: ["for", "since", "from", "ago"], a: 0, e: "for + a length of time." },
+    { t: "f", q: "Hurry up! The film has already ______. (start)", a: ["started"], e: "already → present perfect: has + past participle." },
+    { t: "m", q: "Choose the correct sentence.", o: ["When did you arrive?", "When have you arrived?", "When you have arrived?", "When did you arrived?"], a: 0, e: "A 'when' question asks about a definite time → simple past." },
+    { t: "m", q: "'Gandhiji has visited our town.' What is wrong?", o: ["He is no longer alive, so use the simple past: visited.", "Nothing is wrong.", "It should be 'have visited'.", "It should be 'is visiting'."], a: 0, e: "The present perfect links to now; it is odd for a person no longer living." },
+    { t: "f", q: "I ______ (not finish) my project yet.", a: ["haven't finished", "have not finished"], e: "yet → present perfect negative." }
+  ] },
+
+// ───────────────────────── LEVEL 4 ─────────────────────────
+{ id: "u24", level: 4, vp: "VP 4", title: "Consider him (to be) honest",
+  formula: "S + V + Object + (to be) + Adjective / Noun",
+  explain: "Verbs of opinion and judgement — consider, believe, find, think, suppose, prove, declare, report — can take an object followed by (to be) and a complement. This sounds formal; in everyday English we usually use a that-clause instead. With a that-clause or infinitive as the real object, put 'it' after the verb: I think it wise to wait.",
+  ex: ["Everyone considers her (to be) a fine singer.", "The jury believed the witness (to be) truthful.", "I found the old man (to be) very friendly.", "They proved the story (to be) false.", "I think it strange that nobody called.", "We consider it an honour to host you."],
+  verbs: "consider, believe, think, find, suppose, imagine, prove, declare, report, know, feel, judge, guess",
+  watch: [{ bad: "They knew him a liar.", good: "They knew him to be a liar. / They knew (that) he was a liar.", note: "With 'know', 'to be' cannot be omitted." }],
+  qs: [
+    { t: "m", q: "Which is the more informal way to say 'I consider him to be careless'?", o: ["I think (that) he is careless.", "I consider careless him.", "I think him careless to be.", "I am considering him careless."], a: 0, e: "Everyday English prefers a that-clause (VP 11)." },
+    { t: "f", q: "Do you think ______ wise to travel at night? (preparatory pronoun)", a: ["it"], e: "think it + adjective + to-infinitive." },
+    { t: "m", q: "Make it passive: 'People believed him to be a spy.'", o: ["He was believed to be a spy.", "He believed to be a spy.", "He was believed be a spy.", "He was believed a spy to be."], a: 0, e: "Object → subject; 'to be' stays." },
+    { t: "m", q: "For a past situation, which form is right? 'We believe the letter ___ by someone else.'", o: ["to have been written", "to be wrote", "to written", "being written to"], a: 0, e: "Past time → perfect infinitive: to have been." },
+    { t: "f", q: "The doctors declared the patient ______ danger. (out of)", a: ["out of"], e: "declare + object + prepositional complement." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I find it difficult to wake up early.", "I find difficult to wake up early.", "I find it difficult waking up early it.", "I find that difficult to wake up early it."], a: 0, e: "find it + adjective + to-infinitive." },
+    { t: "m", q: "Which pattern? 'They proved the theory wrong.'", o: ["VP 4 (object + (to be) + complement)", "VP 19", "VP 2", "VP 21"], a: 0, e: "prove + object + (to be) + adjective." },
+    { t: "f", q: "We all consider ______ a pity that the match was cancelled. (pronoun)", a: ["it"], e: "Preparatory 'it' for a that-clause." }
+  ] },
+
+{ id: "u25", level: 4, vp: "VP 13–14", title: "Question word + to-infinitive",
+  formula: "S + V + (Object) + how / what / where / when / whether + to + verb",
+  explain: "After know, learn, wonder, decide, forget, ask, show, teach and tell we can use a question word with a to-infinitive. With show, teach, tell, ask and advise, a person often comes first (VP 14).",
+  ex: ["I don't know what to say.", "She learned how to swim last year.", "We couldn't decide where to go.", "Can you show me how to use this app?", "He asked the guard which gate to take.", "I'm not sure whether to laugh or cry."],
+  verbs: "know, learn, wonder, decide, forget, remember, discover, find out, show, teach, tell, ask, advise, remind",
+  watch: [{ bad: "I don't know how I can to do it.", good: "I don't know how to do it.", note: "Question word + to-infinitive — no subject, no can." },
+          { bad: "Tell me why to go.", good: "Tell me why I should go.", note: "'Why' is not used with a to-infinitive." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["Please tell me what to do.", "Please tell me what I to do.", "Please tell me what doing.", "Please tell me to what do."], a: 0, e: "question word + to-infinitive." },
+    { t: "f", q: "Could you show me ______ to tie this knot?", a: ["how"], e: "show someone how to do something." },
+    { t: "m", q: "Which question word cannot be used with a to-infinitive?", o: ["why", "how", "where", "what"], a: 0, e: "Use a clause instead: why I should…" },
+    { t: "m", q: "Which is VP 14 (with a person)?", o: ["She taught me how to knit.", "She learnt how to knit.", "She wondered how to knit.", "She knew how to knit."], a: 0, e: "teach + me + how to…" },
+    { t: "f", q: "I can't decide ______ to buy — the blue one or the red one. (question word)", a: ["which"], e: "which + to-infinitive for a choice." },
+    { t: "m", q: "Choose the correct sentence.", o: ["She didn't know whether to accept the offer.", "She didn't know if to accept the offer.", "She didn't know whether accept the offer.", "She didn't know to whether accept."], a: 0, e: "Use 'whether', not 'if', before a to-infinitive." },
+    { t: "f", q: "Remind me ______ to put the spare key. I keep forgetting. (place)", a: ["where"], e: "where + to-infinitive." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Can you advise me which course to choose?", "Can you advise me which course choosing?", "Can you advise to me which course choose?", "Can you advise me which to course choose?"], a: 0, e: "advise + person + which + noun + to-infinitive." }
+  ] },
+
+{ id: "u26", level: 4, vp: "VP 15–16", title: "Question word + Clause (indirect questions)",
+  formula: "S + V + (Object) + wh-word / if / whether + subject + verb",
+  explain: "When a question is put inside another sentence, the word order becomes normal statement order: subject before verb. No question mark is needed unless the whole sentence is a question. Use if or whether for yes/no questions.",
+  ex: ["I wonder where she lives.", "Do you know what time it is?", "Ask him whether he will join us.", "Nobody knows why the lights went out.", "Tell me how you solved the puzzle.", "I'm not sure if the shop is open."],
+  verbs: "know, wonder, ask, tell, show, see, find out, discover, decide, mind, care, doubt, inform",
+  watch: [{ bad: "Can you tell me where is the station?", good: "Can you tell me where the station is?", note: "Inside an indirect question: subject + verb." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["I don't know where he has gone.", "I don't know where has he gone.", "I don't know where did he go.", "I don't know where he has gone?"], a: 0, e: "Statement order, no question mark." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Could you tell me how much this costs?", "Could you tell me how much does this cost?", "Could you tell me how much costs this?", "Could you tell me how much is costing this?"], a: 0, e: "subject (this) + verb (costs)." },
+    { t: "f", q: "She asked me ______ I had eaten. (yes/no word)", a: ["if", "whether"], e: "if / whether for yes/no questions." },
+    { t: "m", q: "Report the question: 'Where do you live?' — He asked me…", o: ["where I lived.", "where did I live.", "where do I live.", "where I do live?"], a: 0, e: "Statement order and tense shift." },
+    { t: "f", q: "I wonder what ______ (she / be) doing now.", a: ["she is"], e: "Subject before verb: she is." },
+    { t: "m", q: "Which is VP 16 (with a person object)?", o: ["Tell me why you are upset.", "I wonder why you are upset.", "I don't know why you are upset.", "Nobody cares why you are upset."], a: 0, e: "tell + me + wh-clause." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Do you remember when the school was founded?", "Do you remember when was the school founded?", "Do you remember when did the school found?", "Do you remember the school when was founded?"], a: 0, e: "subject + verb in the indirect question." },
+    { t: "f", q: "I don't mind ______ you sit, as long as you are quiet. (place word)", a: ["where"], e: "mind + where-clause." }
+  ] },
+
+{ id: "u27", level: 4, vp: "VP 21–22", title: "Preparatory It and There",
+  formula: "There + be + indefinite subject · It + be + adjective + to-inf / that-clause",
+  explain: "English dislikes starting a sentence with a long or indefinite subject. Use 'There is/are' when the subject is indefinite (a, some, any, no). Use 'It' at the start when the real subject is a to-infinitive, an -ing phrase or a clause, and move that subject to the end.",
+  ex: ["There is a crack in the glass.", "There are no buses after nine.", "It is easy to make mistakes.", "It's no use crying over it.", "It seems that the match will be cancelled.", "It was kind of you to wait."],
+  verbs: "there is/are/was/were/will be/have been · it is/was/seems/appears/doesn't matter/happened",
+  watch: [{ bad: "Is a letter for you on the table.", good: "There is a letter for you on the table.", note: "With an indefinite subject, start with 'There'." },
+          { bad: "To learn a language quickly is not easy.", good: "It is not easy to learn a language quickly.", note: "The first is not wrong, but the 'It' pattern is much more natural." }],
+  qs: [
+    { t: "m", q: "Choose the most natural sentence.", o: ["It is dangerous to swim here.", "To swim here is dangerous it.", "Is dangerous to swim here.", "Swimming here it is dangerous."], a: 0, e: "Preparatory 'it' + adjective + to-infinitive." },
+    { t: "f", q: "______ are thirty students in our class.", a: ["There"], e: "Indefinite subject → There are." },
+    { t: "m", q: "Choose the correct sentence.", o: ["It doesn't matter whether we win or lose.", "Whether we win or lose doesn't matter it.", "It doesn't matter we win whether or lose.", "There doesn't matter whether we win or lose."], a: 0, e: "It + verb + clause." },
+    { t: "m", q: "Choose the correct sentence.", o: ["It's no use arguing with him.", "It's no use to arguing with him.", "There's no use argue with him.", "It's no use argue with him."], a: 0, e: "It's no use / no good + -ing." },
+    { t: "f", q: "There's no ______ (deny) that he is talented. (gerund)", a: ["denying"], e: "There's no + -ing = it is impossible to…" },
+    { t: "m", q: "Choose the correct sentence.", o: ["It is important for children to sleep well.", "It is important children to sleep well.", "It is important that children to sleep well.", "It is important for children sleeping well."], a: 0, e: "It + adj + for + person + to-infinitive." },
+    { t: "m", q: "Choose the best sentence.", o: ["There's a map of India on the wall.", "A map of India is on the wall.", "Is a map of India on the wall.", "On the wall is a map of India it."], a: 0, e: "Hornby notes 'There is…' is preferred with an indefinite subject." },
+    { t: "f", q: "It ______ (seem) that nobody knew the answer. (past)", a: ["seemed"], e: "It seemed that…" }
+  ] },
+
+{ id: "u28", level: 4, vp: "Tense", title: "Future Time",
+  formula: "will · be going to · present progressive · be about to · simple present (timetable)",
+  explain: "English has several ways to talk about the future. 'Will' for predictions, promises and sudden decisions. 'Be going to' for plans already made and for what we can see coming. The present progressive for fixed arrangements. The simple present for timetables. 'Be about to' for the very near future.",
+  ex: ["I think India will win the match.", "We are going to paint our house next month.", "Look at those clouds — it's going to rain.", "I'm meeting my cousin at five.", "The train leaves at 6.40 tomorrow.", "Hurry! The bus is about to leave."],
+  verbs: "will, shall, be going to, be about to, be due to, present progressive, simple present",
+  watch: [{ bad: "When I will finish, I will call you.", good: "When I finish, I will call you.", note: "After when, if, before, after, as soon as — use the present for future meaning." }],
+  qs: [
+    { t: "m", q: "The phone rings. You decide now: …", o: ["I'll get it.", "I'm going to get it.", "I get it.", "I'm getting it tomorrow."], a: 0, e: "A sudden decision → will." },
+    { t: "m", q: "Look at the black clouds! It ___.", o: ["is going to rain", "will raining", "rains", "is raining tomorrow"], a: 0, e: "Evidence now → going to." },
+    { t: "f", q: "I'll text you as soon as I ______ (reach) home.", a: ["reach"], e: "Present tense after 'as soon as' for future meaning." },
+    { t: "m", q: "A fixed arrangement: 'We ___ the dentist on Friday.'", o: ["are seeing", "see always", "saw", "have seen"], a: 0, e: "Present progressive for arrangements." },
+    { t: "f", q: "The flight ______ (depart) at 7.15 tomorrow morning. (timetable)", a: ["departs"], e: "Timetable → simple present." },
+    { t: "m", q: "Quick! The film is ___ start.", o: ["about to", "going", "due", "will"], a: 0, e: "be about to = very soon." },
+    { t: "m", q: "Choose the correct sentence.", o: ["If it rains, we will stay indoors.", "If it will rain, we will stay indoors.", "If it rain, we stay indoors will.", "If it is raining, we would stay indoors will."], a: 0, e: "if + present, will + verb." },
+    { t: "f", q: "______ I open the window? (offer — first person)", a: ["Shall"], e: "Shall I…? for offers." }
+  ] },
+
+{ id: "u29", level: 4, vp: "AP / NP", title: "Adjective and Noun Patterns",
+  formula: "Adjective + to-inf / preposition / that-clause · It is kind of you to…",
+  explain: "Learn adjectives together with what follows them: anxious about, afraid of, good at, proud of, interested in, kind of (someone) to, easy to (do), glad that. Nouns too have patterns: an intention of going, a wish to travel, the fact that…",
+  ex: ["It was kind of you to help.", "She is good at mathematics.", "I'm glad (that) you came.", "This question is easy to answer.", "He is proud of his daughter.", "She has no intention of resigning."],
+  verbs: "afraid of, proud of, fond of, good at, bad at, interested in, anxious about, sorry for, angry with (a person), angry about (a thing), kind of, eager to, certain that",
+  watch: [{ bad: "I am interesting in music.", good: "I am interested in music.", note: "-ed adjectives describe how you feel; -ing adjectives describe what causes the feeling." }],
+  qs: [
+    { t: "m", q: "Choose the correct preposition: 'She is afraid ___ dogs.'", o: ["of", "from", "with", "at"], a: 0, e: "afraid of." },
+    { t: "f", q: "It was very thoughtful ______ you to remember my birthday.", a: ["of"], e: "It is kind/thoughtful/clever OF someone to…" },
+    { t: "m", q: "Choose the correct sentence.", o: ["The book was boring, so I felt bored.", "The book was bored, so I felt boring.", "The book was boring, so I felt boring.", "The book was bored, so I felt bored."], a: 0, e: "-ing = cause; -ed = feeling." },
+    { t: "f", q: "Arjun is very good ______ drawing.", a: ["at"], e: "good at + noun / -ing." },
+    { t: "m", q: "Choose the correct sentence.", o: ["This problem is difficult to solve.", "This problem is difficult to solve it.", "This problem is difficult solving it.", "This problem is difficult for solve."], a: 0, e: "Don't add 'it' — the subject is already the object of 'solve'." },
+    { t: "m", q: "Choose the correct preposition: 'I'm angry ___ my brother.'", o: ["with", "about", "on", "at the"], a: 0, e: "angry with a person; angry about a thing." },
+    { t: "f", q: "Mother was anxious ______ my health.", a: ["about"], e: "anxious about something." },
+    { t: "m", q: "Choose the correct sentence.", o: ["He has no intention of leaving.", "He has no intention to leaving.", "He has no intention for leave.", "He has no intention of leave."], a: 0, e: "noun 'intention' + of + -ing (the verb 'intend' takes to-inf)." }
+  ] },
+
+{ id: "u30", level: 4, vp: "Adverbs", title: "Adverb Position and Look-alike Adverbs",
+  formula: "Mid-position: always, often, never… · Hard / hardly · Late / lately · Near / nearly",
+  explain: "Frequency adverbs (always, usually, often, seldom, never) go before the main verb but after 'be' and helper verbs. Some adverbs look like adjectives (fast, hard, late, early, high). Adding -ly can change the meaning completely: hardly = almost not; lately = recently; nearly = almost.",
+  ex: ["She always arrives on time.", "He is never late.", "I have often thought about it.", "Prices have risen sharply lately.", "I could hardly hear the speaker.", "The kite flew high above the trees."],
+  verbs: "always, usually, often, sometimes, seldom, rarely, never · hard/hardly, late/lately, near/nearly, high/highly, free/freely",
+  watch: [{ bad: "She goes always to the temple.", good: "She always goes to the temple.", note: "Frequency adverbs come before the main verb." }],
+  qs: [
+    { t: "m", q: "Choose the correct order.", o: ["We usually have dinner at eight.", "We have usually dinner at eight.", "Usually we have at eight dinner.", "We have dinner usually eight at."], a: 0, e: "Before the main verb." },
+    { t: "m", q: "Choose the correct order.", o: ["She is always cheerful.", "She always is cheerful.", "Always she cheerful is.", "She is cheerful always is."], a: 0, e: "After 'be'." },
+    { t: "f", q: "The exam was so tough that I could ______ answer anything. (almost not)", a: ["hardly"], e: "hardly = almost not." },
+    { t: "m", q: "'Have you seen any good films ___?' (= recently)", o: ["lately", "late", "later", "latest"], a: 0, e: "lately = recently." },
+    { t: "f", q: "He works ______ and deserves the prize. (with great effort)", a: ["hard"], e: "hard (adverb) = with effort." },
+    { t: "m", q: "Choose the correct word: 'It is ___ seven o'clock.' (= almost)", o: ["nearly", "near", "nearer", "nearest"], a: 0, e: "nearly = almost." },
+    { t: "m", q: "Choose the correct word: 'She is a ___ respected teacher.'", o: ["highly", "high", "height", "higher"], a: 0, e: "highly = very much (before a past participle)." },
+    { t: "f", q: "I have ______ seen such a beautiful sunset. (frequency word meaning 'not ever')", a: ["never"], e: "have + never + past participle." }
+  ] },
+
+// ───────────────────────── LEVEL 5 ─────────────────────────
+{ id: "u31", level: 5, vp: "Concepts", title: "Requests, Invitations and Suggestions",
+  formula: "Could you…? · Would you mind -ing? · Let's… · Why don't we…? · How about -ing? · I suggest that…",
+  explain: "We soften requests with could, would, would you mind, please. We make suggestions with Let's, Shall we, Why don't we, How about, What about, and I suggest (that). Invitations often use Would you like to…?",
+  ex: ["Could you pass me the water, please?", "Would you mind waiting a moment?", "Let's take a short break, shall we?", "Why don't we ask the librarian?", "How about visiting the zoo on Sunday?", "Would you like to join us for lunch?"],
+  verbs: "could, would, will, would you mind, let's, shall we, why don't, how about, what about, suggest, would you like",
+  watch: [{ bad: "How about to go for a walk?", good: "How about going for a walk?", note: "How about / What about + -ing." }],
+  qs: [
+    { t: "m", q: "Which is the most polite request?", o: ["Could you possibly lend me your pen?", "Give me your pen.", "You give pen.", "Pen, now."], a: 0, e: "Could you possibly…? is very polite." },
+    { t: "f", q: "Would you mind ______ (turn) the music down?", a: ["turning"], e: "mind + -ing." },
+    { t: "m", q: "Choose the correct suggestion.", o: ["Why don't we start now?", "Why we don't start now?", "Why don't we to start now?", "Why not we start now?"], a: 0, e: "Why don't we + base verb? (or: Why not start now?)" },
+    { t: "f", q: "How about ______ (order) some pizza?", a: ["ordering"], e: "How about + -ing." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I suggest that we leave early.", "I suggest to leave early.", "I suggest us to leave early.", "I suggest we to leave early."], a: 0, e: "suggest that + clause, or suggest + -ing." },
+    { t: "m", q: "Accept an invitation politely: 'Would you like to come to our party?'", o: ["I'd love to, thank you.", "I'd love.", "Yes, I like.", "I would love it to."], a: 0, e: "I'd love to (to stands for the infinitive)." },
+    { t: "f", q: "Let's play chess, ______ we?", a: ["shall"], e: "Let's…, shall we?" },
+    { t: "m", q: "Which is an invitation, not a request?", o: ["Would you like some tea?", "Could you make some tea?", "Will you make some tea?", "Can you make tea?"], a: 0, e: "Would you like…? offers or invites." }
+  ] },
+
+{ id: "u32", level: 5, vp: "Concepts", title: "Obligation and Necessity",
+  formula: "must · have (got) to · should / ought to · mustn't · needn't / don't have to",
+  explain: "Must and have to both express obligation. 'Must' often shows the speaker's own feeling; 'have to' shows an outside rule. 'Mustn't' means it is forbidden, but 'don't have to' and 'needn't' mean it is not necessary. For past obligation, use had to.",
+  ex: ["You must wear a helmet when you ride.", "I have to be at school by 7.30.", "You mustn't use your phone during the test.", "You don't have to bring lunch; it will be provided.", "We had to walk because the bus broke down.", "You ought to apologise to her."],
+  verbs: "must, have to, have got to, had to, should, ought to, need to, needn't, mustn't, don't have to, be supposed to",
+  watch: [{ bad: "Yesterday I must stay at home.", good: "Yesterday I had to stay at home.", note: "'Must' has no past form for obligation; use 'had to'." }],
+  qs: [
+    { t: "m", q: "'You ___ cross the road when the light is red.' (It is forbidden.)", o: ["mustn't", "don't have to", "needn't", "haven't to"], a: 0, e: "mustn't = not allowed." },
+    { t: "m", q: "'Tomorrow is a holiday, so you ___ get up early.' (not necessary)", o: ["don't have to", "mustn't", "must", "have to"], a: 0, e: "don't have to = not necessary." },
+    { t: "f", q: "Last week the students ______ submit their projects. (obligation in the past)", a: ["had to"], e: "had to = past obligation." },
+    { t: "m", q: "Which is advice rather than a strong rule?", o: ["You should drink more water.", "You must leave now.", "You have to pay the fine.", "You mustn't smoke here."], a: 0, e: "should / ought to = advice." },
+    { t: "f", q: "You ought ______ thank your teachers. (one word)", a: ["to"], e: "ought + to-infinitive." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Do we have to wear uniform tomorrow?", "Must we to wear uniform tomorrow?", "Do we must wear uniform tomorrow?", "Have we to wearing uniform?"], a: 0, e: "Question with 'have to': Do we have to…?" },
+    { t: "m", q: "'You needn't have cooked.' This means…", o: ["You cooked, but it was not necessary.", "You didn't cook, and that's good.", "You must cook.", "You will cook later."], a: 0, e: "needn't have + past participle = did something unnecessary." },
+    { t: "f", q: "Passengers are ______ to fasten their seat belts. (expected, by rule: be ___ to)", a: ["supposed", "required"], e: "be supposed to / be required to." }
+  ] },
+
+{ id: "u33", level: 5, vp: "Concepts", title: "Permission, Possibility and Probability",
+  formula: "can / may / could (permission) · may / might / could (possibility) · must / can't (logical certainty) · be likely to",
+  explain: "Ask permission with Can I…? (informal), Could I…? (polite) or May I…? (formal). For possibility use may, might or could. When you are almost sure, use must (= surely true) or can't (= surely not true). 'Be likely to' and 'There's a good chance that' express probability.",
+  ex: ["May I come in, sir?", "Could I borrow your dictionary?", "It may rain this evening.", "She might be at the library.", "He must be tired after that long journey.", "That can't be true!"],
+  verbs: "can, could, may, might, must, can't, be allowed to, be likely to, probably, perhaps, possibly",
+  watch: [{ bad: "He mustn't be at home; the lights are off.", good: "He can't be at home; the lights are off.", note: "For logical 'surely not', use can't, not mustn't." }],
+  qs: [
+    { t: "m", q: "Which is the most formal way to ask permission?", o: ["May I leave early?", "Can I leave early?", "I leave early, OK?", "Leave early I can?"], a: 0, e: "May I…? is formal." },
+    { t: "m", q: "'She has worked all day. She ___ be exhausted.' (I'm sure.)", o: ["must", "can't", "mustn't", "needn't"], a: 0, e: "must = logical certainty." },
+    { t: "m", q: "'He left an hour ago. He ___ still be here.' (I'm sure he isn't.)", o: ["can't", "mustn't", "must", "should"], a: 0, e: "can't = logical impossibility." },
+    { t: "f", q: "Take an umbrella. It ______ rain later. (possibility, 5 letters)", a: ["might", "could"], e: "might / could = possible." },
+    { t: "m", q: "Choose the correct sentence.", o: ["The train is likely to be late.", "The train is likely be late.", "The train is likely being late.", "The train likely to is late."], a: 0, e: "be likely to + verb." },
+    { t: "f", q: "You ______ not use a calculator in this exam. (formal prohibition: may)", a: ["may"], e: "may not = not permitted (formal)." },
+    { t: "m", q: "'He might have missed the bus.' This means…", o: ["Perhaps he missed the bus.", "He certainly missed the bus.", "He will miss the bus.", "He didn't miss the bus."], a: 0, e: "might have + past participle = past possibility." },
+    { t: "f", q: "Were you ______ to use phones at the camp? (permission: be ___ to)", a: ["allowed", "permitted"], e: "be allowed to." }
+  ] },
+
+{ id: "u34", level: 5, vp: "Concepts", title: "Ability and Achievement",
+  formula: "can / could · be able to · managed to · succeeded in -ing",
+  explain: "Can and could express general ability. For a single success in the past, use was able to, managed to or succeeded in -ing — not could. For future ability use will be able to.",
+  ex: ["My little brother can read already.", "When I was six, I could swim.", "After many tries, he managed to open the jar.", "Despite the traffic, we were able to reach on time.", "She succeeded in solving the puzzle.", "Soon you will be able to speak English fluently."],
+  verbs: "can, could, be able to, manage to, succeed in, fail to, couldn't",
+  watch: [{ bad: "The fire spread quickly, but everyone could escape.", good: "…but everyone was able to / managed to escape.", note: "For one particular success in the past, avoid 'could'. ('Couldn't' is fine for failure.)" }],
+  qs: [
+    { t: "m", q: "One particular success: 'The climbers ___ reach the top yesterday.'", o: ["managed to", "could", "can", "are able"], a: 0, e: "managed to / were able to for a single achievement." },
+    { t: "f", q: "I ______ (be able) to finish the race last Sunday.", a: ["was able"], e: "was able to = achieved." },
+    { t: "m", q: "General ability in the past: 'My grandfather ___ run very fast when he was young.'", o: ["could", "managed to", "succeeded", "was succeeding"], a: 0, e: "could = general past ability." },
+    { t: "f", q: "She succeeded ______ getting a place in the team.", a: ["in"], e: "succeed in + -ing." },
+    { t: "m", q: "Future ability: 'Next year I ___ drive.'", o: ["will be able to", "can will", "will can", "could will"], a: 0, e: "will be able to (can has no future form)." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I tried hard but couldn't lift the box.", "I tried hard but couldn't to lift the box.", "I tried hard but not could lift the box.", "I tried hard but couldn't lifting the box."], a: 0, e: "couldn't + bare infinitive (failure is fine with could)." },
+    { t: "f", q: "Despite the noise, he managed ______ (sleep).", a: ["to sleep"], e: "manage + to-infinitive." },
+    { t: "m", q: "'He failed to notice the sign.' This means…", o: ["He didn't notice the sign.", "He noticed the sign.", "He wanted to notice.", "He noticed and fell."], a: 0, e: "fail to = not do (what was expected)." }
+  ] },
+
+{ id: "u35", level: 5, vp: "Concepts", title: "Wishes, Hopes and Preferences",
+  formula: "I hope (that) + present/will · I wish + past / past perfect / would · would rather + bare inf · prefer X to Y",
+  explain: "'Hope' is for things that are possible. 'Wish' is for things that are unreal or unlikely: wish + past (now), wish + past perfect (regret about the past), wish + would (complaint about someone's behaviour). For preferences use would rather + bare infinitive, or prefer -ing to -ing.",
+  ex: ["I hope you pass the test.", "I wish I knew the answer.", "She wishes she had studied harder.", "I wish you would stop interrupting.", "I'd rather walk than take the bus.", "He prefers reading to watching television."],
+  verbs: "hope, wish, would rather, would sooner, prefer, would prefer, if only",
+  watch: [{ bad: "I wish I can fly.", good: "I wish I could fly.", note: "After 'wish' (unreal present), move back one tense: can → could." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["I wish I were taller.", "I wish I am taller.", "I wish I will be taller.", "I hope I were taller."], a: 0, e: "wish + past (were) for an unreal present." },
+    { t: "f", q: "I wish I ______ (not eat) so much last night. (regret)", a: ["hadn't eaten", "had not eaten"], e: "wish + past perfect = regret about the past." },
+    { t: "m", q: "Something possible: 'I ___ it doesn't rain tomorrow.'", o: ["hope", "wish", "would rather", "prefer"], a: 0, e: "hope for possible things." },
+    { t: "f", q: "I'd rather ______ (stay) at home tonight.", a: ["stay"], e: "would rather + bare infinitive." },
+    { t: "m", q: "Choose the correct sentence.", o: ["She prefers tea to coffee.", "She prefers tea than coffee.", "She prefers tea from coffee.", "She prefers tea over to coffee."], a: 0, e: "prefer X TO Y." },
+    { t: "m", q: "Complaining about someone's habit: 'I wish you ___ your room.'", o: ["would tidy", "tidy", "will tidy", "tidied tomorrow"], a: 0, e: "wish + would = I want you to change." },
+    { t: "f", q: "I'd rather you ______ (not tell) anyone about this.", a: ["didn't tell", "did not tell"], e: "would rather + person + past tense." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I would prefer to walk.", "I would prefer walk.", "I would prefer walking to.", "I would rather to walk."], a: 0, e: "would prefer + to-infinitive." }
+  ] },
+
+{ id: "u36", level: 5, vp: "Concepts", title: "Conditions and Suppositions",
+  formula: "If + present, will · If + past, would · If + past perfect, would have · unless · provided that · supposing",
+  explain: "Real conditions: If you heat ice, it melts / If it rains, we will stay in. Unreal present: If I had wings, I would fly. Unreal past: If we had left earlier, we would have caught the train. 'Unless' means 'if not'. 'Provided (that)' and 'as long as' mean 'only if'.",
+  ex: ["If you mix red and yellow, you get orange.", "If you hurry, you will catch the bus.", "If I were you, I would apologise.", "If she had asked me, I would have helped.", "Unless you practise, you won't improve.", "You may go out, provided that you return by eight."],
+  verbs: "if, unless, provided (that), as long as, supposing, in case, otherwise, should (= if by chance)",
+  watch: [{ bad: "If I would have known, I would have come.", good: "If I had known, I would have come.", note: "No 'would' in the if-clause." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["If I were rich, I would build a library.", "If I am rich, I would build a library.", "If I would be rich, I would build a library.", "If I were rich, I will build a library."], a: 0, e: "Unreal present: if + past, would + verb." },
+    { t: "f", q: "If we ______ (leave) earlier, we would have caught the train.", a: ["had left"], e: "Unreal past: if + past perfect." },
+    { t: "m", q: "'Unless you hurry, you'll be late.' = …", o: ["If you don't hurry, you'll be late.", "If you hurry, you'll be late.", "Because you hurry, you'll be late.", "Although you hurry, you'll be late."], a: 0, e: "unless = if not." },
+    { t: "f", q: "If you ______ (heat) water to 100°C, it boils. (fact)", a: ["heat"], e: "General truth: if + present, present." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Take a sweater in case it gets cold.", "Take a sweater in case it will get cold.", "Take a sweater in case of it gets cold.", "Take a sweater if case it gets cold."], a: 0, e: "in case + present (as a precaution)." },
+    { t: "m", q: "'Had I known, I would have come.' This means…", o: ["If I had known, I would have come.", "I knew and came.", "I will know and come.", "I had to know."], a: 0, e: "Formal inversion: Had I known = If I had known." },
+    { t: "f", q: "You can borrow my bike as ______ as you return it today.", a: ["long"], e: "as long as = provided that." },
+    { t: "m", q: "Choose the correct sentence.", o: ["If he calls, tell him I'm out.", "If he will call, tell him I'm out.", "If he called, tell him I'm out will.", "If he would call, tell him I'm out."], a: 0, e: "if + present for a real future possibility." }
+  ] },
+
+{ id: "u37", level: 5, vp: "Concepts", title: "Purpose, Result and Cause",
+  formula: "to / in order to / so as to · so that + can/could · so…that · such…that · because / because of / as / since / owing to",
+  explain: "Purpose answers 'Why?' with to, in order to, so as to, or so that + can/will/could. Result uses so + adjective + that, or such + (a) + noun + that. Cause uses because, as, since + clause, or because of, owing to, due to + noun.",
+  ex: ["She left early so as to avoid the traffic.", "Speak clearly so that everyone can hear.", "The tea was so hot that I couldn't drink it.", "It was such a long walk that we were exhausted.", "We stayed in because it was raining.", "The match was cancelled because of the rain."],
+  verbs: "to, in order to, so as to, so that, so…that, such…that, because, as, since, because of, owing to, due to, therefore, so",
+  watch: [{ bad: "Because of it was late, we took a taxi.", good: "Because it was late, we took a taxi. / Because of the late hour, we took a taxi.", note: "'Because' + clause; 'because of' + noun." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["The road was closed because of the flood.", "The road was closed because the flood.", "The road was closed because of the river flooded.", "The road was closed because of flooded."], a: 0, e: "because of + noun." },
+    { t: "f", q: "It was ______ a hot day that we stayed indoors. (so / such)", a: ["such"], e: "such + a + adjective + noun + that." },
+    { t: "f", q: "The box was ______ heavy that I couldn't lift it. (so / such)", a: ["so"], e: "so + adjective + that." },
+    { t: "m", q: "Choose the correct sentence.", o: ["I wrote it down so that I wouldn't forget.", "I wrote it down so that I don't forgot.", "I wrote it down for not forget.", "I wrote it down so as I wouldn't forget."], a: 0, e: "so that + would/could for past purpose." },
+    { t: "m", q: "Negative purpose: 'Walk quietly ___ wake the baby.'", o: ["so as not to", "not to so as", "for not", "so not that"], a: 0, e: "so as not to / in order not to." },
+    { t: "f", q: "______ it was getting dark, we decided to return. (cause, 2 letters)", a: ["As"], e: "As / Since = because (often at the start)." },
+    { t: "m", q: "Choose the correct sentence.", o: ["The delay was due to a technical fault.", "The delay was due to there was a fault.", "The delay was due a fault.", "The delay due to was a fault."], a: 0, e: "due to + noun." },
+    { t: "f", q: "She saved money in order ______ buy a guitar.", a: ["to"], e: "in order to + verb." }
+  ] },
+
+{ id: "u38", level: 5, vp: "Concepts", title: "Concession and Contrast",
+  formula: "although / though / even though + clause · in spite of / despite + noun / -ing · however · while / whereas · even if",
+  explain: "To say something is true in spite of something else, use although or even though with a clause, and in spite of or despite with a noun or -ing form. 'However' starts a new sentence or joins with a semicolon. Use while or whereas to contrast two facts.",
+  ex: ["Although it was raining, we played the match.", "In spite of the rain, we played the match.", "Despite feeling tired, she finished her homework.", "The exam was hard. However, most students passed.", "My brother loves cricket, whereas I prefer football.", "Even if you apologise, she may not forgive you."],
+  verbs: "although, though, even though, in spite of, despite, however, nevertheless, while, whereas, even if, but, yet",
+  watch: [{ bad: "Although he was ill, but he came to school.", good: "Although he was ill, he came to school.", note: "Don't use 'although' and 'but' together." },
+          { bad: "Despite of the cold, we went out.", good: "Despite the cold, we went out. / In spite of the cold…", note: "'Despite' has no 'of'." }],
+  qs: [
+    { t: "m", q: "Choose the correct sentence.", o: ["Although she was nervous, she sang well.", "Although she was nervous, but she sang well.", "Although of being nervous, she sang well.", "Despite she was nervous, she sang well."], a: 0, e: "Although + clause, no 'but'." },
+    { t: "f", q: "In spite ______ the heavy traffic, we arrived on time.", a: ["of"], e: "in spite of + noun (but: despite, with no 'of')." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Despite being injured, he kept playing.", "Despite of being injured, he kept playing.", "Despite he was injured, he kept playing.", "Despite to be injured, he kept playing."], a: 0, e: "despite + -ing / noun." },
+    { t: "f", q: "The plan sounded good. ______, it didn't work. (contrast word, starts a sentence)", a: ["However", "Nevertheless"], e: "However, … / Nevertheless, …" },
+    { t: "m", q: "Contrast two facts: 'Rohan is tall, ___ his sister is short.'", o: ["whereas", "despite", "in spite", "because"], a: 0, e: "whereas / while for contrast." },
+    { t: "m", q: "'Even if it rains, the event will go on.' This means…", o: ["Rain or no rain, the event will happen.", "The event needs rain.", "It is raining now, so the event is off.", "If it rains, the event will stop."], a: 0, e: "even if = whether or not." },
+    { t: "f", q: "Even ______ he is rich, he lives simply. (one word)", a: ["though"], e: "even though = although (stronger)." },
+    { t: "m", q: "Choose the correct sentence.", o: ["Tired as he was, he kept walking.", "Tired though as he was, he kept walking.", "As tired he was, he kept walking.", "Tired was he, he kept walking."], a: 0, e: "Adjective + as + subject + verb = although he was tired (formal)." }
+  ] },
+
+{ id: "u39", level: 5, vp: "Mastery", title: "Tricky Pairs: Same Verb, Different Pattern",
+  formula: "stop / remember / forget / try / regret / mean / go on + to-inf vs -ing",
+  explain: "Some verbs change their meaning depending on the pattern. 'Stop doing' = no longer do (VP 17); 'stop to do' = stop in order to do (VP 25). 'Remember to do' = not forget a duty; 'remember doing' = have a memory of a past action. 'Try to do' = make an effort; 'try doing' = do it as an experiment.",
+  ex: ["He stopped talking when the principal entered.", "He stopped to talk to his old friend.", "Remember to water the plants.", "I remember watering them yesterday.", "Try to stay calm.", "Try adding a little lemon juice."],
+  verbs: "stop, remember, forget, try, regret, mean, go on, need, like, begin",
+  watch: [{ bad: "I'll never forget to see the Taj Mahal for the first time.", good: "I'll never forget seeing the Taj Mahal for the first time.", note: "A memory of a past experience takes -ing." }],
+  qs: [
+    { t: "m", q: "'She stopped to drink water.' This means…", o: ["She paused so that she could drink water.", "She no longer drinks water.", "She hates water.", "She stopped others drinking water."], a: 0, e: "stop + to-inf = purpose (VP 25)." },
+    { t: "m", q: "'She stopped drinking soft drinks.' This means…", o: ["She doesn't drink them any more.", "She paused to have a soft drink.", "She started drinking them.", "She forgot to drink them."], a: 0, e: "stop + -ing = no longer do (VP 17)." },
+    { t: "f", q: "Please remember ______ (lock) the gate tonight.", a: ["to lock"], e: "A duty in the future → remember to do." },
+    { t: "f", q: "I clearly remember ______ (lock) the gate. I'm sure it's locked.", a: ["locking"], e: "A memory of the past → remember doing." },
+    { t: "m", q: "The laptop won't start. 'Try ___ it off and on again.'", o: ["switching", "to switch", "switch", "switched"], a: 0, e: "try + -ing = do it as an experiment." },
+    { t: "m", q: "'I regret to inform you that…' This is used for…", o: ["giving bad news politely now", "being sorry about a past action", "a future plan", "a request"], a: 0, e: "regret to say/inform = I'm sorry that I must tell you. 'Regret doing' = be sorry you did it." },
+    { t: "f", q: "Missing the bus means ______ (walk) three kilometres. (mean = involve)", a: ["walking"], e: "mean + -ing = involve; mean + to-inf = intend." },
+    { t: "m", q: "'After the interval, the singer went on ___ a folk song.' (= next, she did something different)", o: ["to sing", "singing", "sing", "sang"], a: 0, e: "go on to do = do something new next; go on doing = continue." }
+  ] },
+
+{ id: "u40", level: 5, vp: "Mastery", title: "Adverbial Particles and Phrasal Verbs",
+  formula: "verb + particle (up, down, in, out, on, off, away, back) — sometimes a new meaning",
+  explain: "Particles combine with verbs. Sometimes the meaning is clear (take off your hat); sometimes it must be learned as a new word (put off = postpone, run out of = have no more, turn down = refuse). A pronoun object goes before the particle. Particles can also start lively exclamations: Off they went! Out it comes!",
+  ex: ["The meeting has been put off till Friday.", "We have run out of sugar.", "She turned down the offer politely.", "Please fill in this form.", "The plane took off on time.", "Off went the children to the playground!"],
+  verbs: "put off, run out of, turn down, give up, look after, look up, bring up, carry on, set off, break down, fill in, take off",
+  watch: [{ bad: "Off went they!", good: "Off they went! (but: Off went the children!)", note: "With a pronoun: particle + pronoun + verb. With a noun: particle + verb + noun." }],
+  qs: [
+    { t: "m", q: "'The match was put off.' means…", o: ["postponed", "cancelled for ever", "won", "started"], a: 0, e: "put off = postpone." },
+    { t: "f", q: "Please look ______ the meaning in a dictionary.", a: ["up"], e: "look up = search for information." },
+    { t: "m", q: "Choose the correct sentence.", o: ["She turned it down.", "She turned down it.", "She down turned it.", "She turned it downs."], a: 0, e: "Pronoun before the particle." },
+    { t: "f", q: "Who will look ______ your pets while you're away?", a: ["after"], e: "look after = take care of." },
+    { t: "m", q: "Choose the correct exclamation.", o: ["Away flew the parrot!", "Away the parrot flew it!", "Flew away the parrot it!", "Away flew it!"], a: 0, e: "Particle + verb + noun subject. With a pronoun: Away it flew!" },
+    { t: "f", q: "We've run ______ of milk. Can you buy some?", a: ["out"], e: "run out of = have no more." },
+    { t: "m", q: "'Our car broke down on the highway.' means…", o: ["It stopped working.", "It was broken into pieces.", "It drove downhill.", "It became faster."], a: 0, e: "break down = stop working (machines)." },
+    { t: "f", q: "Don't give ______! You're almost there.", a: ["up"], e: "give up = stop trying." }
+  ] }
+];
+
+</script>
+<script>
+(function(){
+"use strict";
+const LEVELS = window.LEVELS, UNITS = window.UNITS;
+const $ = (s, el=document) => el.querySelector(s);
+const view = $("#view");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const pick = (a,n) => shuffle(a).slice(0,n);
+
+/* ---------- storage (safe) ---------- */
+const KEY = "poe.v1";
+const blank = () => ({ units:{}, xp:0, streak:0, best:0, last:null, days:{}, mistakes:[], goal:20, unlockAll:false, theme:"system", answered:0, correct:0 });
+let S = blank();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function applyTheme(){ const r=document.documentElement; if(S.theme==="system") r.removeAttribute("data-theme"); else r.setAttribute("data-theme",S.theme); }
+applyTheme();
+
+const today = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const yesterday = () => { const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+function touchStreak(){
+  const t=today(); if (S.last===t) return;
+  S.streak = (S.last===yesterday()) ? S.streak+1 : 1;
+  S.best = Math.max(S.best, S.streak); S.last=t;
+}
+function currentStreak(){ return (S.last===today()||S.last===yesterday()) ? S.streak : 0; }
+function todayCount(){ return S.days[today()]||0; }
+
+/* ---------- unlocking ---------- */
+const PASS = 0.7;
+function unitIndex(id){ return UNITS.findIndex(u=>u.id===id); }
+function isDone(u){ const r=S.units[u.id]; return r && r.best>=PASS; }
+function isOpen(u){
+  if (S.unlockAll) return true;
+  const i = unitIndex(u.id); if (i===0) return true;
+  return isDone(UNITS[i-1]) || !!S.units[u.id];
+}
+function starsFor(score){ return score>=0.9?3:score>=0.7?2:score>=0.5?1:0; }
+function starSvg(on, size){ return `<svg viewBox="0 0 24 24" ${size?`width="${size}" height="${size}"`:""} aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${on?"#e9a521":"none"}" stroke="${on?"#e9a521":"currentColor"}" stroke-width="1.6" opacity="${on?1:.45}"/></svg>`; }
+function currentUnit(){ return UNITS.find(u=>isOpen(u)&&!isDone(u)) || UNITS[UNITS.length-1]; }
+
+/* ---------- question building ---------- */
+function norm(s){ return String(s).toLowerCase().replace(/[’‘`]/g,"'").replace(/[.,!?;:"]+/g," ").replace(/\s+/g," ").trim(); }
+function cleanEx(s){ return s.replace(/\s*\([^)]*\)\s*/g," ").replace(/\s+/g," ").trim(); }
+function buildable(s){ const c=cleanEx(s); return !/[…\/—:]/.test(c) && c.split(" ").length>=4 && c.split(" ").length<=10; }
+const isVP = u => /^VP \d/.test(u.vp);
+
+function qKey(uid, i){ return uid+":"+i; }
+function getQ(key){
+  const [uid, i] = key.split(":"); const u = UNITS.find(x=>x.id===uid); if(!u) return null;
+  if (i.startsWith("b")) return makeBuild(u, +i.slice(1));
+  if (i.startsWith("p")) return makeWhich(u, +i.slice(1));
+  const q = u.qs[+i]; return q ? Object.assign({key, unit:u}, q) : null;
+}
+function makeBuild(u, k){
+  const pool = u.ex.map((s,idx)=>({s,idx})).filter(x=>buildable(x.s));
+  if (!pool.length) return null;
+  const item = pool.find(x=>x.idx===k) || pool[0];
+  const sentence = cleanEx(item.s);
+  const words = sentence.split(" ");
+  const sig = w => w.map(x=>norm(x)).sort().join("|");
+  const accepts = u.ex.map(cleanEx).filter(s=>sig(s.split(" "))===sig(words)).map(norm);
+  return { key:qKey(u.id,"b"+item.idx), unit:u, t:"b", q:"Build the sentence. Tap the words in the right order.", words, answer:sentence, accepts, e:`Pattern: ${u.formula}` };
+}
+function makeWhich(u, k){
+  if (!isVP(u)) return null;
+  const ex = u.ex[k] || u.ex[0];
+  const others = pick(UNITS.filter(x=>isVP(x)&&x.id!==u.id&&x.formula!==u.formula), 3);
+  const o = [u, ...others].map(x=>`${x.vp} · ${x.formula}`);
+  return { key:qKey(u.id,"p"+k), unit:u, t:"m", label:"Which pattern?", q:`Which pattern does this sentence follow?<br><em>“${esc(cleanEx(ex))}”</em>`, raw:true, o, a:0, e:`${u.vp}: ${u.title}.` };
+}
+function unitQuestions(u){
+  const keys = u.qs.map((_,i)=>qKey(u.id,i));
+  const bIdx = u.ex.map((s,i)=>i).filter(i=>buildable(u.ex[i]));
+  pick(bIdx,2).forEach(i=>keys.push(qKey(u.id,"b"+i)));
+  if (isVP(u)) keys.push(qKey(u.id,"p"+Math.floor(Math.random()*u.ex.length)));
+  return shuffle(keys).slice(0,10);
+}
+function dailyQuestions(){
+  const open = UNITS.filter(isOpen);
+  const learned = open.filter(u=>S.units[u.id]);
+  const base = learned.length ? learned : [open[0]];
+  const keys = [];
+  pick(S.mistakes, 4).forEach(k=>keys.push(k));
+  const cur = currentUnit();
+  let guard=0;
+  while (keys.length<10 && guard++<200){
+    const u = Math.random()<0.3 && S.units[cur.id] ? cur : base[Math.floor(Math.random()*base.length)];
+    const r = Math.random();
+    let k;
+    if (r<0.18){ const b=u.ex.map((s,i)=>i).filter(i=>buildable(u.ex[i])); if(!b.length) continue; k=qKey(u.id,"b"+b[Math.floor(Math.random()*b.length)]); }
+    else if (r<0.28 && isVP(u)) k=qKey(u.id,"p"+Math.floor(Math.random()*u.ex.length));
+    else k=qKey(u.id, Math.floor(Math.random()*u.qs.length));
+    if (!keys.includes(k)) keys.push(k);
+  }
+  return shuffle(keys);
+}
+
+/* ---------- speech ---------- */
+let voice=null;
+function loadVoice(){ try{ const vs=speechSynthesis.getVoices(); voice = vs.find(v=>/en[-_]GB/i.test(v.lang)) || vs.find(v=>/en[-_]IN/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null; }catch(e){} }
+try{ loadVoice(); speechSynthesis.onvoiceschanged = loadVoice; }catch(e){}
+function speak(t){ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); if(voice) u.voice=voice; u.lang=voice?voice.lang:"en-GB"; u.rate=.92; speechSynthesis.speak(u); }catch(e){ toast("Listening is not available on this device."); } }
+const sayIcon = `<svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+
+/* ---------- navigation ---------- */
+let stack=[];
+function go(fn, push=true){ if(push) stack.push(fn); render(fn); }
+function back(){ if (quiz && !quiz.finished && !confirmLeave()) return; stack.pop(); render(stack[stack.length-1]||home); }
+let leaveArmed=false;
+function confirmLeave(){ if(leaveArmed){ leaveArmed=false; quiz=null; return true; } leaveArmed=true; toast("Tap back again to leave this practice."); setTimeout(()=>leaveArmed=false,2500); return false; }
+function render(fn){ fn(); $("#backBtn").hidden = stack.length<=1; $("#streakNum").textContent=currentStreak(); window.scrollTo(0,0); }
+function setTab(t){ document.querySelectorAll(".nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.tab===t?"page":"false")); }
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{
+  if (quiz && !quiz.finished && !confirmLeave()) return; quiz=null;
+  const t=b.dataset.tab; stack=[]; go({home, daily:dailyIntro, ref:reference, me:progress}[t]);
+}));
+$("#backBtn").addEventListener("click", back);
+
+/* ---------- HOME ---------- */
+function home(){
+  setTab("home");
+  const cur = currentUnit(); const done = UNITS.filter(isDone).length;
+  const tc = todayCount(); const pct = Math.min(100, Math.round(tc/S.goal*100));
+  let html = `<div class="stack">
+  <section class="card today">
+    <div class="eyebrow" style="color:inherit;opacity:.8">Today</div>
+    <h2>${tc>=S.goal ? "Goal reached. Well done!" : "Ten minutes of patterns"}</h2>
+    <div class="stats">
+      <div class="stat"><b>${currentStreak()}</b><span>day streak</span></div>
+      <div class="stat"><b>${S.xp}</b><span>points</span></div>
+      <div class="stat"><b>${done}/${UNITS.length}</b><span>units passed</span></div>
+    </div>
+    <div class="row" style="margin-bottom:6px"><span class="muted" style="font-size:.85rem;flex:1">${tc} of ${S.goal} answers today</span></div>
+    <div class="goalbar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    <div class="stack" style="margin-top:14px;gap:8px">
+      <button class="btn" id="contBtn">Continue: ${esc(cur.title)}</button>
+      <button class="btn ghost" id="dailyBtn">Mixed daily practice</button>
+    </div>
+  </section>`;
+  for (const L of LEVELS){
+    const us = UNITS.filter(u=>u.level===L.id);
+    const passed = us.filter(isDone).length;
+    html += `<section class="level" aria-labelledby="lv${L.id}">
+      <header><div class="badge" style="background:${L.colour}">${L.id}</div>
+      <div style="flex:1;min-width:0"><div class="eyebrow">${esc(L.tag)} · ${passed}/${us.length}</div><h3 id="lv${L.id}">${esc(L.name)}</h3><p>${esc(L.blurb)}</p></div></header>
+      <ul class="units">`;
+    for (const u of us){
+      const open=isOpen(u), r=S.units[u.id], st=r?starsFor(r.best):0;
+      html += `<li><button class="unit" data-u="${u.id}" ${open?"":"disabled"}>
+        <span class="vp">${esc(u.vp)}</span>
+        <span class="t"><b>${esc(u.title)}</b><span>${esc(u.formula)}</span></span>
+        ${open ? `<span class="stars" aria-label="${st} of 3 stars">${starSvg(st>=1)}${starSvg(st>=2)}${starSvg(st>=3)}</span>`
+               : `<span class="lock" aria-label="Locked"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>`}
+      </button></li>`;
+    }
+    html += `</ul></section>`;
+  }
+  html += `<p class="muted" style="font-size:.82rem;text-align:center">Score 70% or more in a unit to unlock the next one.</p></div>`;
+  view.innerHTML = html;
+  $("#contBtn").onclick = () => go(()=>lesson(cur));
+  $("#dailyBtn").onclick = () => go(dailyIntro);
+  view.querySelectorAll(".unit").forEach(b=>b.onclick=()=>{ const u=UNITS.find(x=>x.id===b.dataset.u); go(()=>lesson(u)); });
+}
+
+/* ---------- LESSON ---------- */
+function lesson(u){
+  setTab("home");
+  const L = LEVELS.find(l=>l.id===u.level);
+  const slots = u.formula.split(/\s+\+\s+/).map(s=>`<span class="slot">${esc(s)}</span>`).join("");
+  view.innerHTML = `<div class="stack">
+    <div><div class="eyebrow" style="color:${L.colour}">Level ${L.id} · ${esc(L.name)} · ${esc(u.vp)}</div>
+    <h1 style="font-size:1.75rem;margin-top:4px">${esc(u.title)}</h1>
+    <div class="formula" aria-label="Pattern">${slots}</div></div>
+    <section class="card"><p style="margin:0">${esc(u.explain)}</p></section>
+    <section class="card stack" style="gap:10px"><div class="eyebrow">Examples</div>
+      <ul class="exlist">${u.ex.map(s=>`<li><span>${esc(s)}</span><button class="say" data-say="${esc(cleanEx(s))}" aria-label="Listen">${sayIcon}</button></li>`).join("")}</ul></section>
+    <section class="card"><div class="eyebrow">Verbs and words often used this way</div><p class="verbs" style="margin:6px 0 0">${esc(u.verbs)}</p></section>
+    ${(u.watch||[]).map(w=>`<section class="watch"><div class="row" style="gap:6px"><span class="sign" aria-hidden="true">&#9888;</span><b>Watch out</b></div>
+      <div class="bad">${esc(w.bad)}</div><div class="good">${esc(w.good)}</div><div class="muted" style="font-size:.9rem;margin-top:4px">${esc(w.note)}</div></section>`).join("")}
+    <div class="dock"><button class="btn" id="startQ">Practise this pattern (10 questions)</button></div>
+  </div>`;
+  view.querySelectorAll(".say").forEach(b=>b.onclick=()=>speak(b.dataset.say));
+  $("#startQ").onclick = () => startQuiz(unitQuestions(u), {mode:"unit", unit:u});
+}
+
+/* ---------- QUIZ ---------- */
+let quiz=null;
+function startQuiz(keys, meta){
+  const qs = keys.map(getQ).filter(Boolean);
+  quiz = { qs, i:0, right:0, meta, finished:false, wrongKeys:[] };
+  if (stack[stack.length-1]===results) stack.pop();
+  go(question);
+}
+function question(){
+  const z=quiz, q=z.qs[z.i];
+  const label = q.label || ({m:"Choose the answer", f:"Fill in the blank", b:"Build the sentence"}[q.t]);
+  let body="";
+  if (q.t==="m"){
+    q._order = q._order || shuffle(q.o.map((_,i)=>i));
+    body = `<div class="opts">${q._order.map(i=>`<button class="opt" data-i="${i}">${esc(q.o[i])}</button>`).join("")}</div>`;
+  } else if (q.t==="f"){
+    body = `<input class="answer" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer">`;
+  } else {
+    q._bank = q._bank || shuffle(q.words.map((w,i)=>({w,i})));
+    body = `<div class="build-line" id="line" aria-label="Your sentence"></div>
+      <div class="bank" id="bank">${q._bank.map(x=>`<button class="word" data-i="${x.i}">${esc(x.w)}</button>`).join("")}</div>`;
+  }
+  const qtext = q.raw ? q.q : esc(q.q).replace(/_{3,}/g,"<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>");
+  view.innerHTML = `<div class="stack pop">
+    <div class="row"><div class="progress" aria-hidden="true"><i style="width:${z.i/z.qs.length*100}%"></i></div>
+      <span class="muted" style="font-variant-numeric:tabular-nums;font-size:.85rem">${z.i+1}/${z.qs.length}</span></div>
+    <div><div class="qtype">${esc(label)} <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· ${esc(q.unit.vp)}</span></div>
+    <p class="qtext">${qtext}</p></div>
+    ${body}
+    <div id="fb"></div>
+    <div class="dock"><button class="btn" id="checkBtn" disabled>Check</button></div>
+  </div>`;
+  const check=$("#checkBtn");
+  let chosen=null;
+  if (q.t==="m"){
+    view.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ view.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); chosen=+b.dataset.i; check.disabled=false; });
+  } else if (q.t==="f"){
+    const inp=$("#ans"); inp.focus({preventScroll:true});
+    inp.oninput=()=>{ check.disabled=!inp.value.trim(); };
+    inp.onkeydown=e=>{ if(e.key==="Enter"&&!check.disabled) check.click(); };
+  } else {
+    const line=$("#line"), picked=[];
+    const draw=()=>{ line.innerHTML=picked.map((x,k)=>`<button class="word" data-k="${k}">${esc(q.words[x])}</button>`).join(""); check.disabled = picked.length!==q.words.length;
+      line.querySelectorAll(".word").forEach(b=>b.onclick=()=>{ const idx=picked.splice(+b.dataset.k,1)[0]; $(`#bank .word[data-i="${idx}"]`).disabled=false; draw(); }); };
+    view.querySelectorAll("#bank .word").forEach(b=>b.onclick=()=>{ picked.push(+b.dataset.i); b.disabled=true; draw(); });
+    q._picked=picked;
+  }
+  check.onclick=()=>{
+    if (check.dataset.next){ next(); return; }
+    let ok=false, shown="";
+    if (q.t==="m"){
+      ok = chosen===q.a;
+      view.querySelectorAll(".opt").forEach(b=>{ const i=+b.dataset.i; b.disabled=true; if(i===q.a) b.classList.add("right"); else if(i===chosen) b.classList.add("wrong"); });
+      shown = q.o[q.a];
+    } else if (q.t==="f"){
+      const inp=$("#ans"); const v=norm(inp.value);
+      ok = q.a.some(a=>norm(a)===v); inp.disabled=true; inp.classList.add(ok?"right":"wrong");
+      shown = q.a[0];
+    } else {
+      const s = norm(q._picked.map(i=>q.words[i]).join(" "));
+      ok = q.accepts.includes(s);
+      $("#line").classList.add(ok?"right":"wrong");
+      view.querySelectorAll(".word").forEach(b=>b.disabled=true);
+      shown = q.answer;
+    }
+    record(q, ok);
+    $("#fb").innerHTML = `<div class="feedback ${ok?"right":"wrong"} pop" role="status"><b>${ok?pickPraise():"Not quite."}</b>
+      ${ok?"":`<div>Answer: <strong>${esc(shown)}</strong></div>`}<div class="muted" style="font-size:.92rem">${esc(q.e||"")}</div>
+      ${q.t==="b"?`<button class="say" style="margin-top:6px" aria-label="Listen" id="sayAns">${sayIcon}</button>`:""}</div>`;
+    const sa=$("#sayAns"); if(sa) sa.onclick=()=>speak(q.answer);
+    check.textContent = quiz.i===quiz.qs.length-1 ? "See results" : "Next"; check.dataset.next="1"; check.disabled=false; check.focus({preventScroll:true});
+  };
+}
+const praise=["Correct!","Well done!","Exactly right.","Good work!","Spot on."];
+function pickPraise(){ return praise[Math.floor(Math.random()*praise.length)]; }
+function record(q, ok){
+  S.answered++; touchStreak(); S.days[today()]=(S.days[today()]||0)+1;
+  if (ok){ quiz.right++; S.correct++; S.xp+=10; S.mistakes=S.mistakes.filter(k=>k!==q.key); }
+  else { quiz.wrongKeys.push(q.key); if(!S.mistakes.includes(q.key)) S.mistakes.push(q.key); if(S.mistakes.length>60) S.mistakes.shift(); }
+  save(); $("#streakNum").textContent=currentStreak();
+}
+function next(){ quiz.i++; if (quiz.i>=quiz.qs.length) { quiz.finished=true; stack.pop(); go(results); } else render(question); }
+
+function results(){
+  const z=quiz, score=z.right/z.qs.length, st=starsFor(score);
+  let unlocked=null;
+  if (z.meta.mode==="unit"){
+    const u=z.meta.unit, was=isDone(u), r=S.units[u.id]||{best:0,tries:0};
+    r.best=Math.max(r.best,score); r.tries++; r.lastDate=today(); S.units[u.id]=r; save();
+    const i=unitIndex(u.id); if(!was && isDone(u) && UNITS[i+1]) unlocked=UNITS[i+1];
+  }
+  const msg = score>=0.9?"Excellent!":score>=0.7?"Pattern passed.":score>=0.5?"Nearly there.":"Keep practising.";
+  view.innerHTML = `<div class="stack pop" style="text-align:center">
+    <div class="eyebrow">${z.meta.mode==="unit"?esc(z.meta.unit.vp+" · "+z.meta.unit.title):"Daily practice"}</div>
+    <div class="bigstars" aria-label="${st} of 3 stars">${starSvg(st>=1)}${starSvg(st>=2)}${starSvg(st>=3)}</div>
+    <div class="big">${z.right}/${z.qs.length}</div>
+    <h2>${msg}</h2>
+    <p class="muted" style="margin:0">+${z.right*10} points · ${todayCount()} answers today</p>
+    ${unlocked?`<div class="card" style="text-align:left"><div class="eyebrow">Unlocked</div><b>${esc(unlocked.vp)} · ${esc(unlocked.title)}</b></div>`:""}
+    ${z.meta.mode==="unit"&&score<PASS?`<p class="muted" style="margin:0">Score 7 or more to unlock the next unit. Read the examples again, then retry.</p>`:""}
+    ${z.wrongKeys.length?`<p class="muted" style="margin:0;font-size:.9rem">The ${z.wrongKeys.length} question${z.wrongKeys.length>1?"s":""} you missed will come back in your daily practice.</p>`:""}
+    <div class="stack" style="gap:8px">
+      ${unlocked?`<button class="btn" id="nextUnit">Start next unit</button>`:""}
+      ${z.meta.mode==="unit"?`<button class="btn ${unlocked?"ghost":""}" id="retry">Try again</button>`:`<button class="btn" id="again">Another round</button>`}
+      <button class="btn ghost" id="toHome">Back to the path</button>
+    </div></div>`;
+  const nu=$("#nextUnit"); if(nu) nu.onclick=()=>{ stack=[home]; go(()=>lesson(unlocked)); };
+  const rt=$("#retry"); if(rt) rt.onclick=()=>startQuiz(unitQuestions(z.meta.unit), z.meta);
+  const ag=$("#again"); if(ag) ag.onclick=()=>startQuiz(dailyQuestions(), {mode:"daily"});
+  $("#toHome").onclick=()=>{ quiz=null; stack=[]; go(home); };
+}
+
+/* ---------- DAILY ---------- */
+function dailyIntro(){
+  setTab("daily");
+  const learned = UNITS.filter(u=>S.units[u.id]).length;
+  const tc=todayCount();
+  view.innerHTML = `<div class="stack">
+    <h1 style="font-size:1.75rem">Today's practice</h1>
+    <section class="card stack" style="gap:8px">
+      <p style="margin:0">Ten mixed questions from the patterns you have studied${S.mistakes.length?`, including up to four you got wrong before`:""}.</p>
+      <div class="goalbar" style="background:var(--line)"><i style="width:${Math.min(100,tc/S.goal*100)}%;background:var(--accent)"></i></div>
+      <span class="muted" style="font-size:.85rem">${tc} of ${S.goal} answers today · ${S.mistakes.length} to review</span>
+    </section>
+    ${learned?"":`<section class="watch"><b>Start with a unit first.</b><div class="muted" style="font-size:.9rem">Daily practice draws on units you have tried. Until then it uses Unit 1.</div></section>`}
+    <button class="btn" id="goDaily">Start (10 questions)</button>
+    ${S.mistakes.length?`<button class="btn ghost" id="goReview">Review my mistakes only</button>`:""}
+    <section class="card"><div class="eyebrow">Daily goal</div>
+      <div class="seg" style="margin-top:8px" role="group" aria-label="Daily goal">${[10,20,30,50].map(n=>`<button data-g="${n}" aria-pressed="${S.goal===n}">${n} answers</button>`).join("")}</div></section>
+  </div>`;
+  $("#goDaily").onclick=()=>startQuiz(dailyQuestions(),{mode:"daily"});
+  const gr=$("#goReview"); if(gr) gr.onclick=()=>startQuiz(pick(S.mistakes,10),{mode:"daily"});
+  view.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ S.goal=+b.dataset.g; save(); render(dailyIntro); });
+}
+
+/* ---------- REFERENCE ---------- */
+const VPREF = [
+ [1,"S + V + Object","We planted a mango tree.","u03"],[2,"S + V + (not) to-inf","Mira hopes to become a nurse.","u07"],
+ [3,"S + V + Object + (not) to-inf","The guide told us to keep together.","u15"],[4,"S + V + Object + (to be) + complement","The judges declared her (to be) the winner.","u24"],
+ [5,"S + V + Object + bare inf","Let the children play.","u16"],[6,"S + V + Object + -ing","I heard a dog barking.","u17"],
+ [7,"S + V + Object + adjective","The rain made the road slippery.","u13"],[8,"S + V + Object + noun","They chose Kiran captain.","u14"],
+ [9,"S + V + Object + past participle","We had the fan repaired.","u18"],[10,"S + V + Object + adverbial","Hang your bag on the hook.","u11"],
+ [11,"S + V + that-clause","I believe that you are right.","u19"],[12,"S + V + Object + that-clause","He assured me that all was well.","u20"],
+ [13,"S + V + wh-word + to-inf","I don't know where to begin.","u25"],[14,"S + V + Object + wh-word + to-inf","She taught us how to fold paper boats.","u25"],
+ [15,"S + V + wh-word / if + clause","I wonder who left this note.","u26"],[16,"S + V + Object + wh-word + clause","Ask her when the bus leaves.","u26"],
+ [17,"S + V + -ing (gerund)","He has stopped complaining.","u08"],[18,"S + V + Object + prep + Object","I thanked her for the advice.","u21"],
+ [19,"S + V + Indirect Obj + Direct Obj","Pass me the salt, please.","u04"],[20,"S + V + (for) + distance / time","The concert lasted three hours.","u12"],
+ [21,"S + V","The guests have left.","u01"],[22,"S + V + complement","The sky grew dark.","u02"],
+ [23,"S + V + adverbial","My grandparents live near the river.","u05"],[24,"S + V + prep + Object","Wait for me at the gate.","u10"],
+ [25,"S + V + to-inf (purpose / result)","She paused to take a breath.","u09"]];
+let refFilter="all";
+function reference(){
+  setTab("ref");
+  const rows = VPREF.filter(r=>refFilter==="all"||(refFilter==="t"?r[0]<=19:r[0]>=20));
+  view.innerHTML = `<div class="stack">
+    <div><h1 style="font-size:1.75rem">The 25 Verb Patterns</h1>
+    <p class="muted" style="margin:4px 0 0">Patterns 1–19 have a direct object (transitive). Patterns 20–25 have none (intransitive).</p></div>
+    <div class="seg" role="group" aria-label="Filter">${[["all","All 25"],["t","Transitive 1–19"],["i","Intransitive 20–25"]].map(([k,l])=>`<button data-f="${k}" aria-pressed="${refFilter===k}">${l}</button>`).join("")}</div>
+    <section class="card" style="padding:4px 8px"><div class="tablewrap"><table class="ref">
+      <thead><tr><th>VP</th><th>Pattern and example</th><th></th></tr></thead><tbody>
+      ${rows.map(r=>{ const u=UNITS.find(x=>x.id===r[3]); const open=isOpen(u);
+        return `<tr><td>${r[0]}</td><td><span class="fm">${esc(r[1])}</span>${esc(r[2])}</td>
+        <td><button data-u="${r[3]}" ${open?"":"disabled style=\"opacity:.45\""} aria-label="Open VP ${r[0]} lesson">${open?"Learn":"Locked"}</button></td></tr>`; }).join("")}
+      </tbody></table></div></section>
+    <p class="muted" style="font-size:.82rem">Pattern numbers follow A. S. Hornby, <em>A Guide to Patterns and Usage in English</em> (OUP). All example sentences in this app are newly written.</p>
+  </div>`;
+  view.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ refFilter=b.dataset.f; render(reference); });
+  view.querySelectorAll(".ref button[data-u]").forEach(b=>b.onclick=()=>{ const u=UNITS.find(x=>x.id===b.dataset.u); go(()=>lesson(u)); });
+}
+
+/* ---------- PROGRESS ---------- */
+let resetArmed=false;
+function progress(){
+  setTab("me");
+  const acc = S.answered ? Math.round(S.correct/S.answered*100) : 0;
+  const days=[]; for(let k=6;k>=0;k--){ const d=new Date(); d.setDate(d.getDate()-k); const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); days.push({l:d.toLocaleDateString("en-GB",{weekday:"short"}).slice(0,2), n:S.days[key]||0}); }
+  const maxD=Math.max(S.goal,...days.map(d=>d.n));
+  view.innerHTML = `<div class="stack">
+    <h1 style="font-size:1.75rem">Your progress</h1>
+    <section class="card"><div class="stats" style="margin:0">
+      <div class="stat" style="background:var(--bg)"><b>${currentStreak()}</b><span class="muted">day streak</span></div>
+      <div class="stat" style="background:var(--bg)"><b>${S.best}</b><span class="muted">best streak</span></div>
+      <div class="stat" style="background:var(--bg)"><b>${acc}%</b><span class="muted">accuracy</span></div></div></section>
+    <section class="card"><div class="eyebrow">Last 7 days</div>
+      <svg viewBox="0 0 280 120" width="100%" role="img" aria-label="Answers per day for the last 7 days" style="margin-top:8px;max-width:100%">
+        <line x1="0" x2="280" y1="${100-(S.goal/maxD)*86}" y2="${100-(S.goal/maxD)*86}" stroke="var(--muted)" stroke-dasharray="4 4" stroke-width="1"/>
+        <text x="278" y="${96-(S.goal/maxD)*86}" text-anchor="end" font-size="9" fill="var(--muted)">goal ${S.goal}</text>
+        ${days.map((d,i)=>{ const h=d.n/maxD*86, x=i*40+8; return `<rect x="${x}" y="${100-h}" width="24" height="${h}" rx="4" fill="var(--accent)" opacity="${d.n>=S.goal?1:.55}"/>
+          <text x="${x+12}" y="114" text-anchor="middle" font-size="10" fill="var(--muted)">${d.l}</text>${d.n?`<text x="${x+12}" y="${96-h}" text-anchor="middle" font-size="9" fill="var(--ink)">${d.n}</text>`:""}`; }).join("")}
+      </svg></section>
+    <section class="card"><div class="eyebrow" style="margin-bottom:10px">Levels</div><div class="bars">
+      ${LEVELS.map(L=>{ const us=UNITS.filter(u=>u.level===L.id), d=us.filter(isDone).length;
+        return `<div class="b"><span>${esc(L.name)}</span><span class="track"><i style="width:${d/us.length*100}%;background:${L.colour}"></i></span><span class="n">${d}/${us.length}</span></div>`; }).join("")}
+    </div></section>
+    <section class="card">
+      <div class="toggle"><div><p><b>Teacher mode</b></p><p class="muted" style="font-size:.85rem">Open every unit without passing the earlier ones.</p></div>
+        <button class="switch" id="swUnlock" role="switch" aria-checked="${S.unlockAll}" aria-label="Teacher mode"></button></div>
+      <div class="toggle"><div><p><b>Appearance</b></p></div>
+        <div class="seg" role="group" aria-label="Appearance">${[["system","Auto"],["light","Light"],["dark","Dark"]].map(([k,l])=>`<button data-th="${k}" aria-pressed="${S.theme===k}">${l}</button>`).join("")}</div></div>
+      <div class="toggle"><div><p><b>Start again</b></p><p class="muted" style="font-size:.85rem">Clears all stars, points and streaks on this device.</p></div>
+        <button class="btn ghost" id="reset" style="width:auto;padding:8px 14px;color:var(--bad);border-color:var(--bad)">Reset</button></div>
+    </section>
+    <p class="muted" style="font-size:.82rem">Progress is saved on this device only.</p>
+  </div>`;
+  $("#swUnlock").onclick=()=>{ S.unlockAll=!S.unlockAll; save(); render(progress); toast(S.unlockAll?"All units open":"Units unlock in order"); };
+  view.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{ S.theme=b.dataset.th; save(); applyTheme(); render(progress); });
+  $("#reset").onclick=e=>{ if(!resetArmed){ resetArmed=true; e.target.textContent="Tap again to confirm"; setTimeout(()=>{resetArmed=false; const r=$("#reset"); if(r) r.textContent="Reset";},3000); return; }
+    resetArmed=false; const th=S.theme; S=blank(); S.theme=th; save(); toast("Progress cleared"); render(progress); };
+}
+
+/* Android hardware back button (Capacitor) */
+document.addEventListener("backbutton", e=>{ e.preventDefault&&e.preventDefault(); if(stack.length>1) back(); });
+window.__poeBack = () => { if (stack.length>1){ back(); return true; } return false; };
+try {
+  const App = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if (App) App.addListener("backButton", () => { if (!window.__poeBack()) App.exitApp(); });
+} catch(e){}
+
+go(home);
+})();
+</script>
+
+</body>
+</html>
