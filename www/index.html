@@ -173,6 +173,8 @@ h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:
 .bars .track{height:10px;background:var(--line);border-radius:9px;overflow:hidden}
 .bars .track i{display:block;height:100%;border-radius:9px}
 .bars .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.codebox{background:var(--accent-soft);border:1.5px dashed var(--accent);border-radius:12px;padding:14px;text-align:center;overflow-x:auto}
+.codebox code{font-family:var(--f-mono);font-size:1.05rem;letter-spacing:.04em;color:var(--ink);user-select:all;word-break:break-all}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;max-width:90vw}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 @keyframes pop{0%{transform:scale(.96);opacity:.6}100%{transform:scale(1);opacity:1}}
@@ -1286,6 +1288,52 @@ function reference(){
 }
 
 /* ---------- PROGRESS ---------- */
+/* ---------- transfer code (no server, no personal data) ----------
+   Layout (bits): ver 3 | unitCount 6 | stars 2×N | xp 20 | streak 10 | best 10 | lastDay 14 | goal 2 | check 10 */
+const B32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const GOALS = [10,20,30,50];
+const EPOCH = Date.UTC(2026,0,1);
+const dayNum = s => s ? Math.round((Date.UTC(+s.slice(0,4), +s.slice(5,7)-1, +s.slice(8,10)) - EPOCH)/864e5) : 0;
+const dayStr = n => { const d=new Date(EPOCH+n*864e5); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); };
+function checksum(bits){ let c=0; for(let i=0;i<bits.length;i+=10) c=(c*31 + parseInt(bits.slice(i,i+10).padEnd(10,"0"),2)) % 1024; return c; }
+const fld = (v,n) => Math.max(0,Math.min(v,(1<<n)-1)).toString(2).padStart(n,"0");
+function makeCode(){
+  let bits = fld(1,3) + fld(UNITS.length,6);
+  for (const u of UNITS){ const r=S.units[u.id]; bits += fld(r ? Math.max(1, starsFor(r.best)) : 0, 2); }
+  const live = S.last ? Math.max(0, dayNum(S.last)) : 0;
+  bits += fld(S.xp,20) + fld(currentStreak(),10) + fld(S.best,10) + fld(live,14) + fld(Math.max(0,GOALS.indexOf(S.goal)),2);
+  bits += fld(checksum(bits),10);
+  bits = bits.padEnd(Math.ceil(bits.length/5)*5,"0");
+  let out=""; for(let i=0;i<bits.length;i+=5) out+=B32[parseInt(bits.slice(i,i+5),2)];
+  return "PL-" + out.match(/.{1,4}/g).join("-");
+}
+function readCode(txt){
+  let s = String(txt).toUpperCase().replace(/^\s*PL[-\s]*/,"").replace(/[^0-9A-Z]/g,"").replace(/O/g,"0").replace(/[IL]/g,"1");
+  if (s.length < 10) throw new Error("short");
+  let bits=""; for (const ch of s){ const v=B32.indexOf(ch); if(v<0) throw new Error("bad"); bits+=v.toString(2).padStart(5,"0"); }
+  let p=0; const take=n=>{ const v=parseInt(bits.slice(p,p+n),2); p+=n; return v; };
+  if (take(3)!==1) throw new Error("bad");
+  const n=take(6); if (n<1) throw new Error("bad");
+  const stars=[]; for(let i=0;i<n;i++) stars.push(take(2));
+  const xp=take(20), streak=take(10), best=take(10), last=take(14), goal=take(2);
+  const body=bits.slice(0,p), ck=take(10);
+  if (p>bits.length || checksum(body)!==ck) throw new Error("check");
+  return { stars, xp, streak, best, last: last?dayStr(last):null, goal:GOALS[goal] };
+}
+function mergeCode(d){
+  const scoreFor = st => st>=3?0.9:st===2?0.7:st===1?0.5:0;
+  let gained=0;
+  d.stars.forEach((st,i)=>{ const u=UNITS[i]; if(!u||!st) return;
+    const r=S.units[u.id]||{best:0,tries:0}; const sc=scoreFor(st);
+    if (!S.units[u.id] || sc>r.best){ if(starsFor(sc)>starsFor(r.best)||!S.units[u.id]) gained++; r.best=Math.max(r.best,sc); r.tries=Math.max(r.tries,1); S.units[u.id]=r; } });
+  S.xp=Math.max(S.xp,d.xp); S.best=Math.max(S.best,d.best,d.streak);
+  if (d.last && (!S.last || d.last>S.last)){ S.last=d.last; S.streak=d.streak; }
+  else if (d.last===S.last){ S.streak=Math.max(S.streak,d.streak); }
+  if (d.goal) S.goal=d.goal;
+  save(); return gained;
+}
+let codeShown=false;
+
 let resetArmed=false;
 function progress(){
   setTab("me");
@@ -1309,6 +1357,18 @@ function progress(){
       ${LEVELS.map(L=>{ const us=UNITS.filter(u=>u.level===L.id), d=us.filter(isDone).length;
         return `<div class="b"><span>${esc(L.name)}</span><span class="track"><i style="width:${d/us.length*100}%;background:${L.colour}"></i></span><span class="n">${d}/${us.length}</span></div>`; }).join("")}
     </div></section>
+    <section class="card stack" style="gap:10px" aria-labelledby="mvH">
+      <div><h3 id="mvH" style="font-size:1.1rem">Move my progress</h3>
+      <p class="muted" style="margin:4px 0 0;font-size:.9rem">Use a code to carry your stars, points and streak to another phone or computer. No account or sign-in is needed.</p></div>
+      ${codeShown?`<div class="codebox"><code id="myCode">${makeCode()}</code></div>
+        <div class="row"><button class="btn" id="copyCode">Copy code</button><button class="btn ghost" id="hideCode">Hide</button></div>
+        <p class="muted" style="margin:0;font-size:.82rem">Send it to yourself (WhatsApp or e-mail), then enter it on the other device. The code holds this moment's progress; make a new one after more practice.</p>`
+      :`<button class="btn ghost" id="showCode">Get my code</button>`}
+      <label for="codeIn" class="eyebrow" style="margin-top:4px">Have a code from another device?</label>
+      <div class="row"><input class="answer" id="codeIn" placeholder="PL-…" autocomplete="off" autocapitalize="characters" spellcheck="false" style="flex:1">
+        <button class="btn" id="useCode" style="width:auto">Bring here</button></div>
+      <p class="muted" style="margin:0;font-size:.82rem">Progress is combined: you keep the better result for every unit.</p>
+    </section>
     <section class="card">
       <div class="toggle"><div><p><b>Teacher mode</b></p><p class="muted" style="font-size:.85rem">Open every unit without passing the earlier ones.</p></div>
         <button class="switch" id="swUnlock" role="switch" aria-checked="${S.unlockAll}" aria-label="Teacher mode"></button></div>
@@ -1317,8 +1377,22 @@ function progress(){
       <div class="toggle"><div><p><b>Start again</b></p><p class="muted" style="font-size:.85rem">Clears all stars, points and streaks on this device.</p></div>
         <button class="btn ghost" id="reset" style="width:auto;padding:8px 14px;color:var(--bad);border-color:var(--bad)">Reset</button></div>
     </section>
-    <p class="muted" style="font-size:.82rem">Progress is saved on this device only.</p>
+    <p class="muted" style="font-size:.82rem">Progress is saved on this device. Use "Move my progress" to carry it to another one.</p>
   </div>`;
+  const sc=$("#showCode"); if(sc) sc.onclick=()=>{ codeShown=true; render(progress); };
+  const hc=$("#hideCode"); if(hc) hc.onclick=()=>{ codeShown=false; render(progress); };
+  const cc=$("#copyCode"); if(cc) cc.onclick=()=>{
+    const t=$("#myCode").textContent;
+    const fallback=()=>{ const r=document.createRange(); r.selectNodeContents($("#myCode")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Code selected. Copy it from the menu."); };
+    try { navigator.clipboard.writeText(t).then(()=>toast("Code copied"), fallback); } catch(e){ fallback(); } };
+  const inp=$("#codeIn");
+  $("#useCode").onclick=()=>{
+    if(!inp.value.trim()){ toast("Type or paste a code first."); return; }
+    let d; try { d=readCode(inp.value); } catch(e){ toast("That code isn't complete or has a typing mistake. Check it and try again."); return; }
+    const g=mergeCode(d); codeShown=false; render(progress);
+    toast(g ? `Progress added: ${g} unit${g>1?"s":""} improved` : "Progress combined. Nothing new to add.");
+  };
+  inp.onkeydown=e=>{ if(e.key==="Enter") $("#useCode").click(); };
   $("#swUnlock").onclick=()=>{ S.unlockAll=!S.unlockAll; save(); render(progress); toast(S.unlockAll?"All units open":"Units unlock in order"); };
   view.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{ S.theme=b.dataset.th; save(); applyTheme(); render(progress); });
   $("#reset").onclick=e=>{ if(!resetArmed){ resetArmed=true; e.target.textContent="Tap again to confirm"; setTimeout(()=>{resetArmed=false; const r=$("#reset"); if(r) r.textContent="Reset";},3000); return; }
